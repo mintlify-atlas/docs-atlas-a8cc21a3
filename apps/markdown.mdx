@@ -1,0 +1,261 @@
+---
+title: "Markdown"
+description: "Joplin uses CommonMark-compliant Markdown with extras for math, diagrams, music notation, and more."
+---
+
+Joplin follows the [CommonMark](https://spec.commonmark.org/) specification. Both the desktop and mobile apps display Markdown as rendered rich text, and you can switch between the raw editor and the rendered preview at any time.
+
+## Cheat sheet
+
+| Element | Markdown | Notes |
+|---|---|---|
+| **Heading 1** | `# Heading 1` | |
+| **Heading 2** | `## Heading 2` | |
+| **Heading 3** | `### Heading 3` | |
+| **Bold** | `**bold text**` | |
+| **Italic** | `*italic text*` | |
+| **Blockquote** | `> quoted text` | |
+| **Unordered list** | `- item` | Nest with 4 spaces |
+| **Ordered list** | `1. item` | |
+| **Inline code** | `` `code` `` | |
+| **Code block** | ` ```language ` | Language auto-detected if omitted |
+| **Unformatted text** | Indent with a tab or 4 spaces | |
+| **Link** | `[text](https://example.com)` | Bare URLs are also auto-linked |
+| **Link with title** | `[text](https://example.com "Title")` | |
+| **Image** | `![alt text](https://example.com/img.png)` | |
+| **Horizontal rule** | `***` or `---` | |
+| **Table** | `\| col \| col \|` | See [tables](#tables) |
+
+## Tables
+
+Create tables using pipes `|` and hyphens `-`. There must be at least three dashes in each header separator cell.
+
+```md
+| First Header  | Second Header |
+| ------------- | ------------- |
+| Content Cell  | Content Cell  |
+| Content Cell  | Content Cell  |
+```
+
+Use colons in the separator row to control column alignment:
+
+```md
+| Left-aligned  | Centered      | Right-aligned |
+| :------------ | :-----------: | ------------: |
+| col 3 is      | right-aligned |         $1600 |
+| col 2 is      | centered      |           $12 |
+```
+
+## Joplin extras
+
+Beyond standard CommonMark, Joplin supports several additional features.
+
+### Links to other notes
+
+Link to another note by using its internal ID in the URL:
+
+```md
+[Link to my note](:/0b0d62d15e60409dac34f354b6e9e839)
+```
+
+<Tip>
+You don't need to copy the ID manually. In the **desktop app**, drag and drop a note into another note to create a link, or right-click a note and select **Copy Markdown link**. In the **mobile app**, open the note, tap the top-right menu, and select **Copy Markdown link**.
+</Tip>
+
+### Math notation
+
+Joplin renders math expressions using [KaTeX](https://katex.org/) notation.
+
+<Tabs>
+  <Tab title="Inline">
+    Wrap the expression in single dollar signs:
+
+    ```md
+    $\sqrt{3x-1}+(1+x)^2$
+    ```
+  </Tab>
+  <Tab title="Block">
+    Wrap the expression in double dollar signs on their own lines:
+
+    ```md
+    $$
+    f(x) = \int_{-\infty}^\infty
+        \hat f(\xi)\,e^{2 \pi i \xi x}
+        \,d\xi
+    $$
+    ```
+  </Tab>
+</Tabs>
+
+### Chemical equations
+
+Chemical equations are supported via the [mhchem](https://mhchem.github.io/MathJax-mhchem/) plugin for KaTeX. This plugin is automatically enabled when math notation is enabled. Use the same `$...$` and `$$...$$` delimiters with mhchem syntax inside.
+
+### Diagrams
+
+Create diagrams using [Mermaid](https://mermaid-js.github.io/) syntax inside a fenced code block tagged `mermaid`:
+
+```md
+```mermaid
+graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;
+` `` 
+```
+
+<Note>
+Mermaid graphs are always rendered on a white background, regardless of the active Joplin theme, because diagram colours may not be compatible with all themes.
+</Note>
+
+### Musical notation
+
+Joplin renders [ABC notation](https://abcnotation.com) into sheet music using a fenced block tagged `abc`:
+
+```md
+```abc
+K:F
+!f!(fgag-g2c2)|
+` ``
+```
+
+#### Global options
+
+In **Settings > Markdown**, you can set global options for the ABC renderer as a [JSON5](https://json5.org/) object. These apply to all music sheets. See the [abcjs render options](https://paulrosen.github.io/abcjs/visual/render-abc-options.html) for the full list.
+
+```js
+{ foregroundColor: "#ff0000", scale: 2 }
+```
+
+#### Per-sheet options
+
+Add a header separated by `---` at the top of the ABC block to override global options for a single sheet:
+
+```md
+```abc
+{tablature: [{instrument: 'violin'}]}
+---
+
+X:1
+T: Cooley's
+M: 4/4
+L: 1/8
+R: reel
+K: G
+|:D2|EB{c}BA B2 EB|~B2 AB dBAG|FDAD BDAD|FDAD dAFD|
+` ``
+```
+
+Per-sheet options override global options when there is a conflict.
+
+### Checkboxes
+
+Add interactive checkboxes to a note using task list syntax:
+
+```md
+- [ ] Milk
+- [x] Rice
+- [ ] Eggs
+```
+
+Checkboxes can be ticked directly in both the desktop and mobile apps without switching to the raw editor.
+
+### HTML support
+
+You can use inline HTML directly in a note when Markdown alone doesn't cover what you need, such as strikethrough or highlighted text:
+
+```md
+This is <s>strikethrough text</s> mixed with regular **Markdown**.
+```
+
+<Note>
+Using plain Markdown is generally recommended over inline HTML because Markdown is easier to edit and more portable.
+</Note>
+
+## Markdown plugins
+
+Joplin includes optional Markdown plugins that extend the standard feature set. Enable or disable them in **Settings > Markdown**. Because these features go beyond the CommonMark spec, notes using them may not render correctly in other Markdown editors.
+
+<AccordionGroup>
+  <Accordion title="Soft breaks">
+    By default, Joplin uses hard breaks — a newline in the source becomes a `<br>` in the output. Enable soft breaks to use the standard Markdown behaviour where a single newline is treated as a space.
+
+    **Enabled by default:** No
+  </Accordion>
+  <Accordion title="Typographer">
+    Replaces common ASCII sequences with proper typographic characters: `(c)` → ©, `(r)` → ®, `(tm)` → ™, straight quotes → curly quotes, `--` → en dash, `---` → em dash.
+
+    **Enabled by default:** No
+  </Accordion>
+  <Accordion title="Linkify">
+    Automatically detects plain URLs and email addresses in the text and converts them to clickable links.
+
+    **Enabled by default:** Yes
+  </Accordion>
+  <Accordion title="KaTeX (math)">
+    Renders math expressions using KaTeX. Use `$expression$` for inline math and `$$expression$$` for block math.
+
+    **Enabled by default:** Yes
+  </Accordion>
+  <Accordion title="Fountain">
+    Adds support for the [Fountain](https://fountain.io) markup language for screenwriting. Use a fenced block tagged `fountain`.
+
+    **Enabled by default:** No
+  </Accordion>
+  <Accordion title="Mermaid">
+    Renders [Mermaid](https://mermaid-js.github.io/mermaid/) diagrams from fenced blocks tagged `mermaid`.
+
+    **Enabled by default:** Yes
+  </Accordion>
+  <Accordion title="Mark (highlight)">
+    Syntax: `==marked==`. Renders as `<mark>marked</mark>` (highlighted text).
+
+    **Enabled by default:** Yes
+  </Accordion>
+  <Accordion title="Footnote">
+    Inline footnotes using `^[I'm inline!]` or reference-style footnotes. See the [markdown-it-footnote](https://github.com/markdown-it/markdown-it-footnote) page for the full syntax.
+
+    **Enabled by default:** Yes
+  </Accordion>
+  <Accordion title="Table of contents (TOC)">
+    Insert a table of contents at any point in the note using one of: `${toc}`, `[[toc]]`, `[toc]`, or `[[_toc_]]`. The TOC is built from the headings in the note.
+
+    **Enabled by default:** Yes
+  </Accordion>
+  <Accordion title="Sub and Sup">
+    Subscript: `X~1~` → X₁. Superscript: `X^2^` → X².
+
+    **Enabled by default:** No
+  </Accordion>
+  <Accordion title="Deflist">
+    Adds HTML `<dl>` definition list support. See [pandoc definition lists](http://johnmacfarlane.net/pandoc/README.html#definition-lists) for syntax.
+
+    **Enabled by default:** No
+  </Accordion>
+  <Accordion title="Abbr">
+    Define abbreviations that show full expansions on hover:
+
+    ```md
+    *[HTML]: Hyper Text Markup Language
+    The HTML specification
+    ```
+
+    **Enabled by default:** No
+  </Accordion>
+  <Accordion title="Emoji">
+    Syntax: `:smile:`. Converts shortcodes to emoji characters. See the [full emoji list](https://gist.github.com/rxaviers/7360908).
+
+    **Enabled by default:** No
+  </Accordion>
+  <Accordion title="Insert">
+    Syntax: `++inserted++`. Renders as `<ins>inserted</ins>`.
+
+    **Enabled by default:** No
+  </Accordion>
+  <Accordion title="Multitable">
+    Adds extended table syntax from [MultiMarkdown](https://fletcher.github.io/MultiMarkdown-6/syntax/tables.html), enabling column spans, row spans, and more.
+
+    **Enabled by default:** No
+  </Accordion>
+</AccordionGroup>

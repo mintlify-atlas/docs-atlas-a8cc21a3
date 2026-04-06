@@ -1,0 +1,74 @@
+---
+title: "Synchronisation overview"
+description: "Sync your Joplin notes across all your devices using Joplin Cloud, Nextcloud, Dropbox, OneDrive, WebDAV, S3, or the local filesystem."
+keywords: ["sync", "synchronisation", "cloud", "backup", "devices"]
+---
+
+Joplin is designed to avoid lock-in to any particular company or service. Synchronisation is built at an abstract level, and access to external services is done via lightweight drivers that provide a filesystem-like interface — the ability to read, write, delete, and list items. This makes it straightforward to support new services and easy to switch between them.
+
+## Supported sync targets
+
+<CardGroup cols={2}>
+  <Card title="Joplin Cloud" icon="cloud" href="/sync/joplin-cloud">
+    The official sync service built specifically for Joplin. Includes note sharing, notebook collaboration, and publishing.
+  </Card>
+  <Card title="Nextcloud" icon="server" href="/sync/self-hosted#nextcloud">
+    A self-hosted, open-source cloud platform. You own both the data and the infrastructure.
+  </Card>
+  <Card title="Dropbox" icon="box" href="/sync/self-hosted#dropbox">
+    Sync to a dedicated `/Apps/Joplin` folder in your Dropbox account. Joplin cannot access anything outside that folder.
+  </Card>
+  <Card title="OneDrive" icon="microsoft" href="/sync/self-hosted#onedrive">
+    Sync to a dedicated `/Apps/Joplin` folder in your Microsoft OneDrive account.
+  </Card>
+  <Card title="WebDAV" icon="globe" href="/sync/self-hosted#webdav">
+    Works with any WebDAV-compatible server — Apache, Nginx, Seafile, OwnCloud, and many more.
+  </Card>
+  <Card title="S3-compatible storage" icon="database" href="/sync/self-hosted#s3">
+    Works with AWS S3, Backblaze B2, Cloudflare R2, DigitalOcean Spaces, and other S3-compatible providers.
+  </Card>
+</CardGroup>
+
+## How sync works
+
+Joplin's synchronisation is service-agnostic. All providers expose the same filesystem-like interface, so the sync logic is identical regardless of which target you choose.
+
+When you make a change — create, edit, or delete a note — Joplin records it locally. The next sync operation sends those changes to the sync target and retrieves any changes made on other devices.
+
+### Triggering a sync
+
+Joplin syncs automatically in the background whenever the application is running. It also syncs automatically after any content change on the local application. You can also trigger a sync manually:
+
+- **Desktop and mobile apps:** Click the **Synchronise** button in the sidebar.
+- **Terminal app:** Run the `:sync` command from within the application, or run `joplin sync` from the terminal to sync outside the UI.
+
+For scheduled sync from the terminal, you can set up a cron job. For example, to sync every 30 minutes:
+
+```bash
+*/30 * * * * /path/to/joplin sync
+```
+
+### Conflict handling
+
+When the same note is edited on two devices before they sync, Joplin detects the conflict. The conflicting version is saved as a duplicate note in a special **Conflicts** notebook so you can review both versions and reconcile them manually. No changes are silently discarded.
+
+## Encryption
+
+All sync targets support [end-to-end encryption (E2EE)](/sync/e2ee). When enabled, data is encrypted on your device before it is sent to the sync target. The sync provider — including Joplin — cannot read your notes.
+
+<Note>
+  E2EE is independent of the sync target. You can use encryption with any provider, including self-hosted options.
+</Note>
+
+## Choosing a sync target
+
+| Target | Hosting | Sharing | Notes |
+|---|---|---|---|
+| Joplin Cloud | Managed | Yes | Fastest sync; official service |
+| Nextcloud | Self-hosted | No | Open source; full data ownership |
+| Dropbox | Managed | No | Easy setup; free tier available |
+| OneDrive | Managed | No | Included with Microsoft 365 |
+| WebDAV | Self-hosted | No | Works with many existing servers |
+| S3 | Self-hosted or managed | No | Flexible; many compatible providers |
+
+For setup instructions for each provider, see [Self-hosted sync options](/sync/self-hosted) or [Joplin Cloud](/sync/joplin-cloud).

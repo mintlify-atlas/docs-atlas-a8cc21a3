@@ -1,0 +1,253 @@
+---
+title: "FAQ"
+description: "Answers to common questions about installing Joplin, syncing notes, using the editor, managing your data, and Joplin Cloud."
+---
+
+## Installation
+
+<AccordionGroup>
+  <Accordion title="The installer gets stuck on Windows">
+    The installer may get stuck if a previous version of Joplin was not uninstalled correctly. A leftover registry entry can block the new installation.
+
+    <Steps>
+      <Step title="Open the Registry Editor">
+        Press **Win + R**, type `regedit.exe`, and press Enter.
+      </Step>
+      <Step title="Navigate to the Uninstall key">
+        Go to `HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall`.
+      </Step>
+      <Step title="Find the Joplin entry">
+        Open the folders one by one. Look for a folder that contains a `DisplayName` entry with a value like `Joplin x.x.x`.
+      </Step>
+      <Step title="Delete the folder">
+        Once you find the Joplin folder, right-click it and select **Delete**.
+      </Step>
+      <Step title="Retry the installation">
+        Run the Joplin installer again. It should now complete without getting stuck.
+      </Step>
+    </Steps>
+  </Accordion>
+
+  <Accordion title="How can I pass arguments to the Linux installation script?">
+    You can pass arguments to the installation script using the following command:
+
+    ```bash
+    wget -O - https://raw.githubusercontent.com/laurent22/joplin/dev/Joplin_install_and_update.sh | bash -s -- --argument1 --argument2
+    ```
+
+    See the [installation script source](https://github.com/laurent22/joplin/blob/dev/Joplin_install_and_update.sh#L37) for a full list of supported arguments.
+  </Accordion>
+
+  <Accordion title="The desktop application will not launch on Linux">
+    If you downloaded the AppImage directly rather than using the recommended installation script, the file may not have execute permissions set.
+
+    Grant execute permissions manually — see the [AppImage User Guide](https://docs.appimage.org/introduction/quickstart.html#how-to-run-an-AppImage) for instructions.
+
+    If permissions are correct and the app still does not launch, your system may be missing the `libfuse2` library, which AppImages require to run. This is a requirement of the AppImage format itself, not specific to Joplin. See [this forum thread](https://discourse.joplinapp.org/t/appimage-incompatibility-in-ubuntu-22-04/25173) for details and an Ubuntu-specific fix.
+  </Accordion>
+
+  <Accordion title="How do I restart Joplin on Windows so that changes take effect?">
+    If the **Show tray icon** setting is enabled, closing the Joplin window does not quit the application — it continues running in the background. To fully restart Joplin, you must quit it first:
+
+    - Click **File** in the menu bar, then click **Quit**, or
+    - Right-click the Joplin tray icon in the system tray, then click **Exit**.
+
+    You can use the Windows Task Manager to confirm that Joplin is no longer running before starting it again.
+  </Accordion>
+</AccordionGroup>
+
+## Sync
+
+<AccordionGroup>
+  <Accordion title="All my notes got deleted after changing the WebDAV URL">
+    If the new WebDAV location is empty when you change the URL, Joplin interprets the absence of data as intentional deletion and removes your local notes to match. To change your WebDAV URL safely:
+
+    <Steps>
+      <Step title="Back up your data">
+        Export your notes to a JEX archive from **File > Export all > JEX** before making any changes.
+      </Step>
+      <Step title="Sync one last time from a client">
+        Open Joplin on the desktop and trigger a full sync to make sure all data is uploaded to the old location.
+      </Step>
+      <Step title="Close Joplin">
+        Quit the application completely before touching any files.
+      </Step>
+      <Step title="Copy all Joplin files to the new location">
+        On your WebDAV service, copy all Joplin files from the old location to the new one. Make sure to include the `.resource` directory — it contains your attachments.
+      </Step>
+      <Step title="Update the WebDAV URL in Joplin">
+        Open Joplin, go to **Tools > Options > Synchronisation**, and enter the new WebDAV URL.
+      </Step>
+      <Step title="Sync to verify">
+        Trigger a sync and confirm your notes are intact.
+      </Step>
+      <Step title="Repeat for other devices">
+        Update the WebDAV URL and sync on each remaining Joplin client.
+      </Step>
+    </Steps>
+
+    <Warning>
+      Never change the WebDAV URL to a location that does not already contain your Joplin data. Joplin will treat an empty target as a signal to delete everything locally.
+    </Warning>
+  </Accordion>
+
+  <Accordion title="The initial sync is very slow — how can I speed it up?">
+    When importing a large number of notes (for example, from Evernote), the first sync can take a very long time. See [this forum post](https://discourse.joplinapp.org/t/workaround-for-slow-initial-bulk-sync-after-evernote-import/746?u=laurent) for techniques to speed up the process if you do not want to wait.
+  </Accordion>
+
+  <Accordion title="Not all notes, folders, or tags are displayed on the mobile app">
+    Joplin does not run background sync on mobile devices. When Joplin is closed, sent to the background, or the device screen turns off, syncing stops. Open the app and wait for sync to complete to ensure all data is up to date.
+  </Accordion>
+
+  <Accordion title="How can I check the sync status?">
+    - **Desktop:** Go to **Help > Synchronisation Status**.
+    - **Mobile:** Go to **Configuration > Tools > SYNC STATUS**.
+
+    On the sync status screen:
+
+    - `total items` — the total number of items to sync.
+    - `synced items` — items already uploaded or downloaded.
+
+    When `total items` and `synced items` are equal, all data has been synced. All your devices should show the same `total items` count.
+  </Accordion>
+
+  <Accordion title="Is it possible to use real file and folder names in the sync target?">
+    No. Joplin uses an open sync format, but it is designed for performance and reliability rather than human readability — the two goals are incompatible. The sync directory functions as a database and is not intended to be edited manually.
+  </Accordion>
+
+  <Accordion title="Why did my sync and encryption passwords disappear after updating Joplin?">
+    Starting with version 2.12, Joplin supports Apple Silicon (M1/M2) Macs natively. Upgrading on one of these systems causes Joplin to lose access to credentials that older versions stored in the system keychain, including sync and encryption passwords. Re-entering your passwords will resolve any related sync or encryption errors.
+  </Accordion>
+
+  <Accordion title="Why is my WebDAV host not working?">
+    **Forbidden error in Strato**
+
+    If you see a `403 Forbidden` error like the one below, make sure you have entered the correct WebDAV URL.
+
+    ```
+    MKCOL .sync/: Unknown error 2 (403): <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+    <html><head>
+    <title>403 Forbidden</title>
+    </head><body>
+    <h1>Forbidden</h1>
+    <p>You don't have permission to access /.sync/ on this server.</p>
+    </body></html>
+    ```
+
+    **Unsupported WebDAV hosts**
+
+    The following WebDAV providers are not supported:
+
+    - Jianguoyun — see [GitHub issue #4294](https://github.com/laurent22/joplin/issues/4294)
+    - pCloud — see [forum thread](https://discourse.joplinapp.org/t/feature-request-pcloud-synchronisation/3530/51)
+
+    **Nextcloud sync is not working**
+
+    - Check your username and password. Type them manually rather than copying and pasting, then try again.
+    - Get the correct WebDAV URL from Nextcloud: in the left sidebar, click **Settings** and copy the WebDAV URL shown there. Append the name of the folder you created for Joplin — for example, if the base URL is `https://example.com/nextcloud/remote.php/webdav/` and your folder is named `Joplin`, the full URL is `https://example.com/nextcloud/remote.php/webdav/Joplin`. You must create this folder yourself in Nextcloud.
+    - If you have two-factor authentication (2FA) enabled on Nextcloud, you need to [create an app password for Joplin](https://github.com/laurent22/joplin/issues/1453#issuecomment-486640902) in the Nextcloud admin interface.
+  </Accordion>
+
+  <Accordion title="How can I use self-signed SSL certificates on Android?">
+    If you are serving over HTTPS with a certificate authority that Android does not trust by default, you can generate a custom CA and sign your own certificates. Tools like [openssl](https://gist.github.com/fntlnz/cf14feb5a46b2eda428e000157447309) or [mkcert](https://github.com/FiloSottile/mkcert) can help with this. You then need to add your CA certificate to Android's trusted certificate store — see [Google's instructions](https://support.google.com/nexus/answer/2844832?hl=en-GB) for how to do this.
+  </Accordion>
+</AccordionGroup>
+
+## Editor and UI
+
+<AccordionGroup>
+  <Accordion title="How can I edit a note in an external text editor?">
+    Set a custom editor command in **Preferences > Text editor command**. If no command is set, Joplin tries to auto-detect your default editor.
+
+    <Tabs>
+      <Tab title="Linux / macOS">
+        ```bash
+        subl -n -w      # Sublime Text: new window, wait for close
+        code -n --wait  # VS Code: new window, wait for close
+        gedit --new-window    # gedit in a new window
+        xterm -e vim    # new terminal running vim
+        open -a <application> # macOS only: open a GUI app
+        ```
+      </Tab>
+      <Tab title="Windows">
+        ```bash
+        subl.exe -n -w             # Sublime Text: new window, wait for close
+        code.exe -n --wait         # VS Code: new window, wait for close
+        notepad.exe                # Notepad in a new window
+        notepad++.exe --openSession  # Notepad++ in a new window
+        ```
+      </Tab>
+    </Tabs>
+
+    <Note>
+      The directory containing your editor's executable must be on your system `PATH`. If it is not, provide the full path to the executable instead.
+    </Note>
+  </Accordion>
+
+  <Accordion title="When I open a note in vim, the cursor is not visible">
+    This is caused by the `set term=ansi` setting in `.vimrc`. Removing that line should restore the cursor. See [GitHub issue #147](https://github.com/laurent22/joplin/issues/147) for more details.
+  </Accordion>
+
+  <Accordion title="How can I easily enter Markdown tags on Android?">
+    You can use a keyboard app that provides Markdown shortcuts, such as [Multiling O Keyboard](https://play.google.com/store/apps/details?id=kl.ime.oh&hl=en). See [this forum post](https://discourse.joplinapp.org/t/android-create-new-list-item-with-enter/585/2?u=laurent) for more information.
+  </Accordion>
+</AccordionGroup>
+
+## Data and privacy
+
+<AccordionGroup>
+  <Accordion title="I deleted some notes by accident and don't have a backup">
+    If you have note history enabled and know the `NOTE_ID`, you can restore a note using the `restoreNoteRevision` command from the command palette:
+
+    ```
+    restoreNoteRevision 66457326a6ba4adeb4be8ce05e37af0d
+    ```
+
+    Joplin will confirm whether the restore was successful and place the note in a **Restored Note** notebook.
+
+    If you do not know the `NOTE_ID`, you can find it in the Joplin SQLite database as `item_id` in the `deleted_items` or `revisions` tables. Check the `title_diff` and `body_diff` fields to identify the correct entry. Take a copy of the database before making any changes to the live file.
+
+    See [this forum post](https://discourse.joplinapp.org/t/restoring-deleted-notes/21304) for further guidance.
+  </Accordion>
+
+  <Accordion title="Could there be a password to restrict access to Joplin?">
+    On mobile, you can enable the biometric lock to protect access to the app. On the desktop application, this is not currently supported. There is an [open issue on GitHub](https://github.com/laurent22/joplin/issues/289) tracking this feature request.
+  </Accordion>
+
+  <Accordion title="Are notebooks and notes backed up during an iOS backup to your Mac?">
+    No. Notebooks and notes stored in Joplin on iOS are not included when [backing up to your Mac](https://support.apple.com/guide/mac-help/back-up-and-restore-your-device-mchla3c8ed03/mac). Use sync or export your data to a JEX archive to keep a backup.
+  </Accordion>
+
+  <Accordion title="Why is it named Joplin?">
+    The application is named in honour of composer and pianist [Scott Joplin](https://en.wikipedia.org/wiki/Scott_Joplin). His name is both memorable and easy to type.
+  </Accordion>
+</AccordionGroup>
+
+## Joplin Cloud
+
+<AccordionGroup>
+  <Accordion title="What is Joplin Cloud?">
+    [Joplin Cloud](https://joplincloud.com) is a sync service built specifically for Joplin. In addition to syncing your notes across all your devices, it provides the following features:
+
+    - **Note publishing** — publish a note to the internet and share a link. The published page updates automatically whenever you edit the note.
+    - **Notebook sharing** — share a notebook with other Joplin Cloud users. Collaborators get full read and write access to the notebook.
+    - **Faster sync** — because it is built specifically for Joplin, Joplin Cloud is faster and uses fewer resources than other sync options.
+    - **Email to note** — forward emails to your personal Joplin Inbox address to save them as notes automatically.
+
+    A Joplin Cloud subscription also supports the continued development of the open-source Joplin apps.
+  </Accordion>
+
+  <Accordion title="Do you offer discounts?">
+    Joplin Cloud offers a **50% Education Discount** for students and teachers. To claim it, contact the team from your university or school email address. You will receive a URL to subscribe at the discounted rate. The discount is valid for one year and can be renewed each year while you remain in education.
+
+    Bulk discounts may also be available for companies, associations, and nonprofit organisations.
+  </Accordion>
+
+  <Accordion title="Where is Joplin Cloud data located?">
+    All Joplin Cloud data and servers are located in France (Paris). Your data is subject to strong data protection regulations, including the GDPR.
+  </Accordion>
+
+  <Accordion title="Is Joplin Cloud carbon neutral?">
+    Yes. Joplin Cloud is committed to reducing its carbon footprint. As one example, Joplin has partnered with the non-profit organisation carbone.eco and invested in the reforestation of four hectares of forest in France.
+  </Accordion>
+</AccordionGroup>

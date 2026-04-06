@@ -1,0 +1,183 @@
+---
+title: "Debugging"
+description: "How to enable debug logging, collect crash reports, use safe mode, and report bugs in Joplin's desktop, mobile, and CLI apps."
+---
+
+When something goes wrong in Joplin, debug logs are the fastest way to understand what happened. This page explains how to enable logging on each platform, how to use safe mode, and how to create and share bug reports.
+
+## Desktop application
+
+### Enable debug logging
+
+If the application opens to a white screen, open **Help > Toggle Development Tools** or **View > Toggle Development Tools** from the menu and check the **Console** tab for errors or warnings.
+
+For other issues, follow these steps to enable full debug logging:
+
+<Steps>
+  <Step title="Open the profile directory">
+    In Joplin, click **Help > Open Profile Directory** to open your profile folder in the file manager.
+  </Step>
+  <Step title="Create a flags.txt file">
+    In the profile directory, create a file named `flags.txt` with the following content:
+
+    ```text
+    --open-dev-tools --debug --log-level debug
+    ```
+  </Step>
+  <Step title="Restart Joplin">
+    Quit and relaunch Joplin. The developer tools panel should open automatically.
+  </Step>
+  <Step title="Reproduce the issue">
+    Click the **Console** tab in the developer tools and reproduce the action that was causing the problem. Copy any errors or warnings you see.
+  </Step>
+  <Step title="Check log.txt">
+    Open `log.txt` in your profile directory. If there are any errors or warnings, include them in your bug report.
+  </Step>
+</Steps>
+
+<Warning>
+  Disable debug logging once you are done troubleshooting. Leaving it enabled causes `log.txt` to grow very quickly. To disable it, delete the `flags.txt` file you created.
+</Warning>
+
+### Crash reports
+
+When Joplin crashes, it writes a crash report to your profile directory with a filename in the format `joplin_crash_dump_<DATE_TIME>.json`. If you experience a crash, share this file with the team via the [Joplin forum](https://discourse.joplinapp.org/), [GitHub Issues](https://github.com/laurent22/joplin/issues), or email.
+
+You can also enable automatic crash report uploads in **Tools > Options > Application**.
+
+### Safe mode
+
+Safe mode disables all plugins and renders notes as plain text. Use it when:
+
+- The app crashes or freezes on startup.
+- The app is very slow to start or use.
+- You suspect a specific note or plugin is causing problems.
+
+Starting in safe mode lets you determine whether the issue is with Joplin itself or with a plugin. In some cases, a note's content can freeze the renderer — safe mode lets you edit or delete that note.
+
+**To enter safe mode from inside the app:**
+
+Click **Help > Toggle safe mode**. Joplin restarts in safe mode.
+
+**To enter safe mode when the app freezes before you can access the menu:**
+
+Add the following content to `flags.txt` in your profile directory (see [Enable debug logging](#enable-debug-logging) for how to find this file):
+
+```text
+--safe-mode --open-dev-tools --debug --log-level debug
+```
+
+Then restart Joplin.
+
+## CLI application
+
+<Steps>
+  <Step title="Start the app with debug flags">
+    ```bash
+    joplin --debug --log-level debug
+    ```
+  </Step>
+  <Step title="Check the log">
+    The profile directory for the CLI app is `~/.config/joplin`. Open `log.txt` there and attach any errors or warnings to your GitHub issue.
+  </Step>
+</Steps>
+
+## Mobile application
+
+<Tabs>
+  <Tab title="Android">
+    ### Get Joplin's log
+
+    <Steps>
+      <Step title="Open the log screen">
+        In Joplin, go to the **Configuration** screen and tap the **Log** button.
+      </Step>
+      <Step title="Share the log">
+        From the options menu, tap **Share** and send the log file to attach to your bug report.
+      </Step>
+    </Steps>
+
+    <Note>
+      If you recently upgraded from version 12.11.x to 12.12.x, review the log for sensitive data before sharing. See [GitHub issue #8211](https://github.com/laurent22/joplin/issues/8211) for details.
+    </Note>
+
+    ### Create a low-level Android bug report
+
+    Some issues require a system-level bug report. To create one:
+
+    <Steps>
+      <Step title="Enable Developer Options">
+        Make sure [Developer Options](https://developer.android.com/studio/debug/dev-options) are enabled on your device.
+      </Step>
+      <Step title="Take the bug report">
+        In Developer Options, tap **Take bug report** and select the type of report you want.
+      </Step>
+      <Step title="Share the report">
+        After a moment, a notification appears confirming the report is ready. Tap the notification to share it.
+      </Step>
+    </Steps>
+
+    See the [Android bug report documentation](https://developer.android.com/studio/debug/bug-report) for more details.
+  </Tab>
+  <Tab title="iOS">
+    ### Get Joplin's log
+
+    <Steps>
+      <Step title="Open the log screen">
+        In Joplin, go to the **Configuration** screen and tap the **Log** button.
+      </Step>
+      <Step title="Share the log">
+        From the options menu, tap **Share** and send the log file.
+      </Step>
+    </Steps>
+
+    ### Create a native iOS crash report
+
+    Some crashes cannot be investigated using Joplin's own logs. For those, a native iOS crash report is very helpful.
+
+    <Steps>
+      <Step title="Open the Settings app">
+        On your device, open **Settings**.
+      </Step>
+      <Step title="Go to Privacy > Diagnostics & Usage">
+        Navigate to **Privacy**, then tap **Diagnostics & Usage**.
+      </Step>
+      <Step title="Select Diagnostics & Usage Data">
+        Tap **Diagnostics & Usage Data** to see a list of crash logs.
+      </Step>
+      <Step title="Find the Joplin crash log">
+        Crash logs are named in the format `<AppName>_<DateTime>_<DeviceName>`. Locate the log for Joplin.
+      </Step>
+      <Step title="Copy and share the log">
+        Open the log, select all the text, tap **Copy**, paste it into an email or message, and send it to the Joplin team.
+      </Step>
+    </Steps>
+
+    <Note>
+      It is not possible to retrieve device console logs directly from an iOS device without Xcode.
+    </Note>
+  </Tab>
+</Tabs>
+
+## Reporting a bug
+
+Once you have collected your logs, report the issue through one of these channels:
+
+<CardGroup cols={3}>
+  <Card title="GitHub Issues" icon="github" href="https://github.com/laurent22/joplin/issues">
+    Report bugs and track fixes on GitHub.
+  </Card>
+  <Card title="Joplin forum" icon="comments" href="https://discourse.joplinapp.org/">
+    Ask questions and get help from the community.
+  </Card>
+  <Card title="Security issues" icon="envelope" href="https://github.com/laurent22/joplin/blob/dev/SECURITY.md">
+    For security-related issues, follow the responsible disclosure process described in the security policy.
+  </Card>
+</CardGroup>
+
+When filing a report, always include:
+
+- The Joplin version and platform (desktop, mobile, CLI).
+- The operating system and version.
+- Steps to reproduce the issue.
+- Relevant sections of `log.txt` or the crash dump file.

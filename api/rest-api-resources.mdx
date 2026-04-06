@@ -1,0 +1,350 @@
+---
+title: 'Resources, search, and events'
+description: 'Manage file attachments, search notes, and track changes with the Joplin Data API.'
+keywords: ['joplin', 'data api', 'resources', 'attachments', 'search', 'events', 'changes']
+---
+
+This page covers resources (file attachments), the search endpoint, and the events endpoint for tracking changes.
+
+Before making requests, see [Authentication](/api/rest-api-auth) to learn how to find the port and obtain an API token.
+
+---
+
+## Resources
+
+Resources are file attachments. A resource can be an image, PDF, or any other file attached to a note.
+
+### Properties
+
+<ResponseField name="id" type="text">
+  Unique identifier of the resource.
+</ResponseField>
+
+<ResponseField name="title" type="text">
+  The resource title.
+</ResponseField>
+
+<ResponseField name="mime" type="text">
+  The MIME type of the resource (e.g., `image/jpeg`, `application/pdf`).
+</ResponseField>
+
+<ResponseField name="filename" type="text">
+  The original filename of the resource.
+</ResponseField>
+
+<ResponseField name="created_time" type="int">
+  When the resource was created (Unix timestamp in milliseconds).
+</ResponseField>
+
+<ResponseField name="updated_time" type="int">
+  When the resource was last updated (Unix timestamp in milliseconds).
+</ResponseField>
+
+<ResponseField name="user_created_time" type="int">
+  When the resource was created. May differ from `created_time` if manually set by the user.
+</ResponseField>
+
+<ResponseField name="user_updated_time" type="int">
+  When the resource was last updated. May differ from `updated_time` if manually set by the user.
+</ResponseField>
+
+<ResponseField name="file_extension" type="text">
+  The file extension of the resource (e.g., `jpg`, `pdf`).
+</ResponseField>
+
+<ResponseField name="size" type="int">
+  File size in bytes.
+</ResponseField>
+
+<ResponseField name="is_shared" type="int">
+  `1` if the resource is shared; `0` otherwise.
+</ResponseField>
+
+<ResponseField name="share_id" type="text">
+  The ID of the Joplin Server/Cloud share containing the resource. Empty if not shared.
+</ResponseField>
+
+<ResponseField name="ocr_text" type="text">
+  OCR-extracted text from the resource, if available.
+</ResponseField>
+
+<ResponseField name="ocr_status" type="int">
+  Status of OCR processing.
+</ResponseField>
+
+<ResponseField name="blob_updated_time" type="int">
+  When the resource file content was last updated (Unix timestamp in milliseconds).
+</ResponseField>
+
+### GET /resources
+
+Gets all resources.
+
+```bash
+curl http://localhost:41184/resources?token=YOUR_TOKEN
+```
+
+### GET /resources/:id
+
+Gets the resource metadata with the given ID.
+
+```bash
+curl http://localhost:41184/resources/ABCD1234?token=YOUR_TOKEN
+```
+
+### GET /resources/:id/file
+
+Downloads the actual file associated with this resource.
+
+```bash
+curl http://localhost:41184/resources/ABCD1234/file?token=YOUR_TOKEN --output file.jpg
+```
+
+### GET /resources/:id/notes
+
+Gets the IDs of notes associated with a resource.
+
+```bash
+curl http://localhost:41184/resources/ABCD1234/notes?token=YOUR_TOKEN
+```
+
+### POST /resources
+
+Creates a new resource (file attachment). This endpoint requires `multipart/form-data` — unlike other API calls that use JSON.
+
+- The file data must be passed in the `data` form field.
+- Resource metadata (title, etc.) must be passed as a JSON string in the `props` form field.
+- The `data` field is required; `props` is optional (default values will be used if omitted).
+
+<ParamField body="data" type="file" required>
+  The file to upload. Pass using `@/path/to/file` with cURL.
+</ParamField>
+
+<ParamField body="props" type="string">
+  A JSON string of resource metadata, e.g. `{"title":"my resource title"}`.
+</ParamField>
+
+```bash
+curl -F 'data=@/path/to/file.jpg' -F 'props={"title":"my resource title"}' http://localhost:41184/resources
+```
+
+#### Creating a resource from a plugin
+
+From a Joplin plugin, use the following syntax:
+
+```javascript
+await joplin.data.post(
+    ["resources"],
+    null,
+    { title: "test.jpg" }, // Resource metadata
+    [
+        {
+            path: "/path/to/test.jpg", // Actual file
+        },
+    ]
+);
+```
+
+### PUT /resources/:id
+
+Updates the properties of the resource with the given ID.
+
+To update both the resource file content and metadata, use `multipart/form-data`:
+
+```bash
+curl -X PUT -F 'data=@/path/to/file.jpg' -F 'props={"title":"my modified title"}' http://localhost:41184/resources/8fe1417d7b184324bf6b0122b76c4696
+```
+
+To update only the metadata (title, etc.) without changing the file, use a regular JSON request:
+
+```bash
+curl -X PUT --data '{"title": "My new title"}' http://localhost:41184/resources/8fe1417d7b184324bf6b0122b76c4696
+```
+
+### DELETE /resources/:id
+
+Deletes the resource with the given ID.
+
+```bash
+curl -X DELETE http://localhost:41184/resources/ABCD1234
+```
+
+### Attaching a resource to a note
+
+To attach a resource to a note, create the resource first, then reference it in the note body using Markdown image or link syntax.
+
+<Steps>
+  <Step title="Upload the resource">
+    Upload the file and capture the returned resource ID:
+
+    ```bash
+    curl -F 'data=@/path/to/attachment.pdf' -F 'props={"title":"My attachment"}' http://localhost:41184/resources
+    ```
+
+    Response includes the new resource `id`.
+  </Step>
+  <Step title="Reference the resource in a note">
+    Use the resource ID in a Markdown link or image within the note body:
+
+    ```bash
+    curl --data '{ "title": "My note", "body": "See attached: [attachment.pdf](:/" }' http://localhost:41184/notes
+    ```
+
+    For images, use `![](:/<resource_id>)`. For other files, use `[](:/<resource_id>)`.
+  </Step>
+</Steps>
+
+---
+
+## Search
+
+### GET /search
+
+Searches for notes using a query string. This endpoint supports the `fields` parameter to limit returned data.
+
+<ParamField query="query" type="string" required>
+  The search query. Supports the full Joplin search syntax.
+</ParamField>
+
+<ParamField query="type" type="string">
+  The item type to search. When provided, full-text search is not used — instead, a case-insensitive string match is performed and wildcards (`*`) are supported. Valid values include `folder`, `tag`, `note`, and other [item type names](/api/rest-api#item-type-ids).
+</ParamField>
+
+<ParamField query="fields" type="string">
+  Comma-separated list of fields to return. Recommended to reduce response size.
+</ParamField>
+
+Search notes for a keyword:
+
+```bash
+curl "http://localhost:41184/search?query=meeting+notes&token=YOUR_TOKEN"
+```
+
+Search notes and return only specific fields:
+
+```bash
+curl "http://localhost:41184/search?query=meeting+notes&fields=id,title,updated_time&token=YOUR_TOKEN"
+```
+
+Find the notebook named `recipes`:
+
+```bash
+curl "http://localhost:41184/search?query=recipes&type=folder&token=YOUR_TOKEN"
+```
+
+Find all tags starting with `project-`:
+
+```bash
+curl "http://localhost:41184/search?query=project-*&type=tag&token=YOUR_TOKEN"
+```
+
+<Note>
+  For full-text search syntax (filters, operators, etc.), see the [Joplin search documentation](https://joplinapp.org/help/apps/search).
+</Note>
+
+---
+
+## Events
+
+The events endpoint tracks recent changes to Joplin items. Currently, only note changes are tracked.
+
+### Properties
+
+<ResponseField name="id" type="int">
+  Unique identifier of the event.
+</ResponseField>
+
+<ResponseField name="item_type" type="int">
+  The type of item that changed. See [item type IDs](/api/rest-api#item-type-ids) for the full list.
+</ResponseField>
+
+<ResponseField name="item_id" type="text">
+  The ID of the item that changed.
+</ResponseField>
+
+<ResponseField name="type" type="int">
+  The type of change: `1` (created), `2` (updated), or `3` (deleted).
+</ResponseField>
+
+<ResponseField name="created_time" type="int">
+  When the event was generated (Unix timestamp in milliseconds).
+</ResponseField>
+
+<ResponseField name="source" type="int">
+  Unused.
+</ResponseField>
+
+<ResponseField name="before_change_item" type="text">
+  Unused.
+</ResponseField>
+
+### GET /events
+
+Returns a paginated list of recent events.
+
+<ParamField query="cursor" type="string">
+  A cursor value indicating from what point in time events should be returned. The response includes a new `cursor` to use for the next request. If not provided, the API returns the latest change ID, which you can store and use for future requests.
+</ParamField>
+
+The response includes:
+
+<ResponseField name="items" type="array">
+  The list of events.
+</ResponseField>
+
+<ResponseField name="has_more" type="boolean">
+  `true` if more events can be retrieved; `false` otherwise.
+</ResponseField>
+
+<ResponseField name="cursor" type="string">
+  Use this value as the `cursor` parameter on the next request to continue retrieving events from where you left off.
+</ResponseField>
+
+<Note>
+  Events are retained for up to **90 days**. The results are paginated — use `has_more` to determine whether additional requests are needed.
+</Note>
+
+Get the current cursor (latest change ID) to use as a starting point:
+
+```bash
+curl http://localhost:41184/events?token=YOUR_TOKEN
+```
+
+Retrieve events since a specific cursor:
+
+```bash
+curl "http://localhost:41184/events?cursor=CURSOR_VALUE&token=YOUR_TOKEN"
+```
+
+### GET /events/:id
+
+Returns the event with the given ID.
+
+```bash
+curl http://localhost:41184/events/42?token=YOUR_TOKEN
+```
+
+---
+
+## Item type IDs
+
+Some API responses reference item types by integer ID. The following table lists all type names and their corresponding IDs:
+
+| Name | ID |
+|------|----|
+| note | 1 |
+| folder | 2 |
+| setting | 3 |
+| resource | 4 |
+| tag | 5 |
+| note_tag | 6 |
+| search | 7 |
+| alarm | 8 |
+| master_key | 9 |
+| item_change | 10 |
+| note_resource | 11 |
+| resource_local_state | 12 |
+| revision | 13 |
+| migration | 14 |
+| smart_filter | 15 |
+| command | 16 |

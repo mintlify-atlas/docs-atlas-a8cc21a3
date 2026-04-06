@@ -1,0 +1,154 @@
+---
+title: "Conflict resolution"
+description: "How Joplin handles conflicts when the same note is edited on multiple devices, how to resolve conflict notes, and how to avoid conflicts in the first place."
+---
+
+## What is a conflict?
+
+A conflict happens when the same note or attachment is modified on two different devices, and those changes are then synchronised. Because Joplin cannot determine which version you want to keep, it creates a conflict note so you can review and merge the changes yourself.
+
+<Note>
+  Conflicts can happen with any sync target — Joplin Cloud, Nextcloud, WebDAV, Dropbox, or OneDrive. The resolution process is the same regardless of which service you use.
+</Note>
+
+## How Joplin handles conflicts
+
+When Joplin detects a conflict during sync, it:
+
+1. Creates a notebook called **Conflict** (if one does not already exist).
+2. Copies the local version of the note into the Conflict notebook.
+3. Replaces the local note with the remote (server) version.
+
+You then have both versions available: the remote version in its original location and your local version in the Conflict notebook. You can compare them and copy any content that was overwritten.
+
+## Resolving a conflict
+
+### If you remember your recent changes
+
+If you know which version is more complete, or if you only need to recover a small number of edits:
+
+<Steps>
+  <Step title="Open both versions">
+    Find the note in its original notebook (the remote version) and the same note in the **Conflict** notebook (your local version).
+  </Step>
+  <Step title="Copy the missing content">
+    Review the conflict note and copy any content that is missing from the main note.
+  </Step>
+  <Step title="Paste into the main note">
+    Edit the main note and paste in the recovered content.
+  </Step>
+  <Step title="Sync and delete the conflict note">
+    Trigger a sync, then right-click the conflict note and select **Delete** to remove it.
+  </Step>
+</Steps>
+
+### If you do not remember your changes since the last sync
+
+Use a merge tool (for example, [diffchecker.com](https://www.diffchecker.com)) to compare both versions side by side and combine the best of each:
+
+<Steps>
+  <Step title="Copy the conflict note content">
+    Open the note in the **Conflict** notebook and copy its entire content.
+  </Step>
+  <Step title="Paste it into the left side of the merge tool">
+    Open your merge tool and paste the conflict note content on the left.
+  </Step>
+  <Step title="Copy the main note content">
+    Open the main note (the remote version) and copy its entire content.
+  </Step>
+  <Step title="Paste it into the right side of the merge tool">
+    Paste the main note content on the right side of the merge tool.
+  </Step>
+  <Step title="Decide which version is more complete">
+    Review both sides and identify which version is closer to what you want to keep.
+  </Step>
+  <Step title="Merge the missing changes">
+    In the merge tool, copy any missing content from the less complete version into the better one.
+  </Step>
+  <Step title="Paste the merged result into Joplin">
+    Copy the final merged content from the tool and paste it into the main note in Joplin.
+  </Step>
+  <Step title="Sync and delete the conflict note">
+    Trigger a sync, then right-click the conflict note and select **Delete**.
+  </Step>
+</Steps>
+
+### Restoring a previous version using note history
+
+If you are confident that a specific earlier version of the note was correct, you can restore it directly using note history:
+
+<Steps>
+  <Step title="Select the note">
+    Click the note you want to restore in the note list.
+  </Step>
+  <Step title="Open note properties">
+    Click the **(i) Note Properties** icon in the toolbar.
+  </Step>
+  <Step title="View previous versions">
+    Select **Previous versions of this note** to open the note history viewer.
+  </Step>
+  <Step title="Choose a version to restore">
+    Browse the available versions by date. Select the version you want.
+  </Step>
+  <Step title="Restore the note">
+    Click **Restore**. The restored version is copied into a folder called **Restored Notes**. The current version of the note is not modified.
+  </Step>
+</Steps>
+
+<Tip>
+  You can also use the command palette to restore a note if you know its ID. Run `restoreNoteRevision <NOTE_ID>` — for example, `restoreNoteRevision 66457326a6ba4adeb4be8ce05e37af0d`. Joplin will confirm the result and place the note in a **Restored Note** notebook.
+</Tip>
+
+There is also a [community plugin for conflict resolution](https://discourse.joplinapp.org/t/plugin-conflict-resolution/) that may offer a more integrated workflow.
+
+## How to avoid conflicts
+
+Conflicts are caused by the same note being edited before both versions have been synced. The most reliable way to avoid them:
+
+- **Sync before you start editing.** When you open Joplin after a gap, wait for sync to complete before making changes. This ensures you are working on the latest version of every note.
+- **Sync after you finish editing.** This uploads your changes quickly, so other devices pick them up before editing the same note.
+- **Maintain a reliable internet connection during sync.** A poor connection can interrupt sync and force it to restart, delaying the upload of your changes.
+
+<Info>
+  Joplin tries to help by uploading your changes within a few seconds of editing. However, it downloads changes from the server at fixed intervals (configurable in **Tools > Options > Synchronisation**). This polling interval is where most conflicts arise — if another device edits a note between two download cycles, both versions diverge and a conflict is created.
+</Info>
+
+## Note history
+
+Joplin automatically saves previous versions of your notes at regular intervals (every 10 minutes). These revisions are synced across all your devices, so a version saved on mobile is also accessible from the desktop app.
+
+Note history is useful beyond just conflict resolution — it provides a safety net if a note is accidentally changed or deleted and you are not sure why.
+
+### Viewing and restoring note history
+
+You can view note history from the desktop application:
+
+<Steps>
+  <Step title="Click the information icon">
+    In the toolbar, click the **Information** icon (ℹ) while the note is open.
+  </Step>
+  <Step title="Select Previous versions of this note">
+    The note history viewer opens and shows the most recent saved version.
+  </Step>
+  <Step title="Browse versions">
+    Use the version selector to navigate to older versions.
+  </Step>
+  <Step title="Restore a version">
+    Click **Restore** to copy the selected version into a **Restored Notes** folder. The current version of the note is not replaced.
+  </Step>
+</Steps>
+
+<Note>
+  While all apps save revisions, only the desktop application currently lets you browse and restore them.
+</Note>
+
+### Configuring note history
+
+You can adjust note history settings in **Tools > Options > Note History**:
+
+- Enable or disable the note history feature entirely.
+- Set how long revisions are kept (default: 90 days).
+
+<Warning>
+  Note history settings are effectively global across all your devices because revisions are synced. For example, if one device is set to keep revisions for 30 days and another is set to 100 days, revisions older than 30 days will be deleted on the first device and that deletion will sync to the other. In practice, the shortest retention period set on any of your devices applies to all of them.
+</Warning>

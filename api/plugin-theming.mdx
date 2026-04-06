@@ -1,0 +1,89 @@
+---
+title: "Plugin theming"
+description: "Apply Joplin's active theme to your plugin's webview panels using built-in CSS variables, and add icons with Font Awesome."
+---
+
+Plugins add custom content to the Joplin UI using [webview panels](https://joplinapp.org/api/references/plugin_api/classes/joplinviewspanels.html). The HTML content of a panel is styled with CSS that you supply. To keep your plugin looking consistent with the rest of the Joplin UI, Joplin automatically provides CSS variables derived from the user's active theme.
+
+## Using Joplin's CSS variables
+
+CSS variables follow the naming convention `--joplin-{property}`. Reference them in your plugin's stylesheet exactly as you would any CSS custom property:
+
+```css
+/* webview.css */
+.container {
+  color: var(--joplin-color);
+  font-family: var(--joplin-font-family);
+}
+```
+
+Joplin injects these variables into the webview's document automatically — you do not need to do anything special to make them available. When the user switches themes, the variable values update accordingly and your panel reflects the new theme without any changes to your code.
+
+<Tip>
+  Using `--joplin-*` variables is the recommended way to match your plugin's appearance to the active Joplin theme. Avoid hardcoding colours or font values, as this will break the plugin's appearance on themes you have not tested.
+</Tip>
+
+## Adding icons
+
+### Desktop icon library
+
+On the desktop app, your plugin webview has access to the icons used by the Joplin application itself. However, relying on Joplin's internal icon library is **not recommended** for two reasons:
+
+1. The icons may change in future versions of Joplin.
+2. The mobile app does not expose any icon library, so using internal icons makes your plugin incompatible with mobile.
+
+### Recommended approach: Font Awesome
+
+The recommended approach is to bundle [Font Awesome](https://fontawesome.com/) with your plugin and import only the specific icons you need. This works on both desktop and mobile.
+
+<Steps>
+  <Step title="Install Font Awesome">
+    From your plugin directory, run:
+
+    ```bash
+    npm install --save @fortawesome/fontawesome-svg-core @fortawesome/free-solid-svg-icons @fortawesome/free-regular-svg-icons @fortawesome/react-fontawesome
+    ```
+  </Step>
+
+  <Step title="Import and register the icons">
+    In one of your top-level TypeScript files, import the icons you need and add them to the Font Awesome library:
+
+    ```typescript
+    import { library } from '@fortawesome/fontawesome-svg-core';
+
+    // Import the specific icons you want to use
+    import { faTimes } from '@fortawesome/free-solid-svg-icons';
+    import { faCheckCircle } from '@fortawesome/free-regular-svg-icons';
+
+    // Add the icons to the library
+    library.add(faTimes, faCheckCircle);
+    ```
+
+    Only import the icons your plugin actually uses. Tree-shaking ensures that unused icons are not included in the bundle.
+  </Step>
+
+  <Step title="Use icons in your React components">
+    Import the `FontAwesomeIcon` component and reference icons by name:
+
+    ```jsx
+    import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
+    const App = () => {
+      return (
+        <div>
+          <FontAwesomeIcon icon="times" />
+          <FontAwesomeIcon icon={['far', 'check-circle']} />
+        </div>
+      );
+    }
+
+    export default App;
+    ```
+
+    Icons from `free-solid-svg-icons` are referenced by name string (for example, `"times"`). Icons from `free-regular-svg-icons` are referenced with the prefix `"far"` (for example, `['far', 'check-circle']`).
+  </Step>
+</Steps>
+
+<Note>
+  If you are not using React, refer to the Font Awesome documentation for your preferred JavaScript framework to set up the SVG core library and render icons without the React component.
+</Note>

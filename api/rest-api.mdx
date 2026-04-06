@@ -1,0 +1,534 @@
+---
+title: 'Data API'
+description: 'Access and manage Joplin notes, notebooks, and tags via the REST Data API.'
+keywords: ['joplin', 'data api', 'rest', 'notes', 'notebooks', 'folders', 'tags', 'pagination']
+---
+
+The Joplin Data API provides access to notes, notebooks, tags, and other Joplin objects over a local REST interface. It is available when the Web Clipper server is running. Plugins can also access this API even when the clipper server is not running.
+
+Before making requests, see [Authentication](/api/rest-api-auth) to learn how to find the port and obtain an API token.
+
+## How the API works
+
+All requests and responses use **JSON**, unless otherwise noted. Use the four standard HTTP verbs to interact with resources:
+
+| Verb | Purpose |
+|------|---------|
+| `GET` | Retrieve items (notes, notebooks, etc.) |
+| `POST` | Create new items. Most properties are optional; omitted properties use default values. |
+| `PUT` | Update an item. Only the properties you provide are changed — all other properties are left untouched. |
+| `DELETE` | Delete items. |
+
+Path parameters like `:id` or `:note_id` should be replaced with the actual item ID. For example, to remove tag `ABCD1234` from note `EFGH789`:
+
+```bash
+curl -X DELETE http://localhost:41184/tags/ABCD1234/notes/EFGH789
+```
+
+### Property types
+
+- Text values are UTF-8.
+- All date/time values are Unix timestamps in milliseconds.
+- Booleans are integer values `0` or `1`.
+
+### Error handling
+
+When an error occurs, the API returns an HTTP status code `>= 400` and a JSON body:
+
+```json
+{ "error": "description of error" }
+```
+
+## Filtering fields
+
+Use the `fields` query parameter to request only specific fields. Pass a comma-separated list of field names.
+
+Get the longitude and latitude of a note:
+
+```bash
+curl http://localhost:41184/notes/ABCD123?fields=longitude,latitude
+```
+
+Get only IDs for all tags:
+
+```bash
+curl http://localhost:41184/tags?fields=id
+```
+
+By default, responses include **id**, **parent_id**, and **title**.
+
+## Pagination
+
+All endpoints that return multiple items are paginated. Every paginated response has this structure:
+
+<ResponseField name="items" type="array" required>
+  The array of items you requested.
+</ResponseField>
+
+<ResponseField name="has_more" type="boolean" required>
+  `true` if more items exist after this page; `false` if you have reached the end.
+</ResponseField>
+
+Use the following query parameters to control pagination and sorting:
+
+| Parameter | Description |
+|-----------|-------------|
+| `page` | Page number to retrieve. Starts at and defaults to `1`. |
+| `limit` | Number of items per page. Maximum is `100`. |
+| `order_by` | Field name to sort by. |
+| `order_dir` | Sort direction: `ASC` or `DESC`. |
+
+Fetch notes 10 at a time, sorted by `updated_time` ascending:
+
+```bash
+curl http://localhost:41184/notes?order_by=updated_time&order_dir=ASC&limit=10
+```
+
+Response:
+
+```json
+{ "items": [ /* 10 notes */ ], "has_more": true }
+```
+
+Fetch the next page:
+
+```bash
+curl http://localhost:41184/notes?order_by=updated_time&order_dir=ASC&limit=10&page=2
+```
+
+Continue incrementing `page` until `has_more` is `false`. Example using JavaScript:
+
+```javascript
+async function fetchJson(url) {
+    return (await fetch(url)).json();
+}
+
+async function fetchAllNotes() {
+    let pageNum = 1;
+    do {
+        const response = await fetchJson('http://localhost:41184/notes?page=' + pageNum++);
+        console.info('Printing notes:', response.items);
+    } while (response.has_more)
+}
+```
+
+---
+
+## Notes
+
+### Properties
+
+<ResponseField name="id" type="text">
+  Unique identifier of the note.
+</ResponseField>
+
+<ResponseField name="parent_id" type="text">
+  ID of the notebook that contains this note. Change this ID to move the note to a different notebook.
+</ResponseField>
+
+<ResponseField name="title" type="text">
+  The note title.
+</ResponseField>
+
+<ResponseField name="body" type="text">
+  The note body, in Markdown. May also contain HTML.
+</ResponseField>
+
+<ResponseField name="created_time" type="int">
+  When the note was created (Unix timestamp in milliseconds).
+</ResponseField>
+
+<ResponseField name="updated_time" type="int">
+  When the note was last updated (Unix timestamp in milliseconds).
+</ResponseField>
+
+<ResponseField name="is_conflict" type="int">
+  `1` if the note is a conflict note; `0` otherwise.
+</ResponseField>
+
+<ResponseField name="latitude" type="numeric">
+  Geographic latitude.
+</ResponseField>
+
+<ResponseField name="longitude" type="numeric">
+  Geographic longitude.
+</ResponseField>
+
+<ResponseField name="altitude" type="numeric">
+  Geographic altitude.
+</ResponseField>
+
+<ResponseField name="author" type="text">
+  Note author.
+</ResponseField>
+
+<ResponseField name="source_url" type="text">
+  The full URL where the note originates from.
+</ResponseField>
+
+<ResponseField name="is_todo" type="int">
+  `1` if this note is a to-do; `0` otherwise.
+</ResponseField>
+
+<ResponseField name="todo_due" type="int">
+  When the to-do is due. An alarm will trigger on that date (Unix timestamp in milliseconds).
+</ResponseField>
+
+<ResponseField name="todo_completed" type="int">
+  Timestamp in milliseconds when the to-do was completed. `0` if not completed.
+</ResponseField>
+
+<ResponseField name="user_created_time" type="int">
+  When the note was created. May differ from `created_time` if manually set by the user.
+</ResponseField>
+
+<ResponseField name="user_updated_time" type="int">
+  When the note was last updated. May differ from `updated_time` if manually set by the user.
+</ResponseField>
+
+<ResponseField name="is_shared" type="int">
+  `1` if the note is published; `0` otherwise.
+</ResponseField>
+
+<ResponseField name="share_id" type="text">
+  The ID of the Joplin Server/Cloud share containing the note. Empty if not shared.
+</ResponseField>
+
+<ResponseField name="body_html" type="text">
+  Note body in HTML format. Use this instead of `body` when creating a note from HTML.
+</ResponseField>
+
+<ResponseField name="base_url" type="text">
+  If `body_html` contains relative URLs, provide `base_url` so they can be converted to absolute ones. This is the URL where the HTML was fetched from, minus the query string.
+</ResponseField>
+
+<ResponseField name="image_data_url" type="text">
+  An image to attach to the note, in [Data URL](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs) format.
+</ResponseField>
+
+<ResponseField name="crop_rect" type="text">
+  If an image is provided, an optional rectangle to crop it. Format: `{"x": x, "y": y, "width": width, "height": height}`.
+</ResponseField>
+
+### GET /notes
+
+Gets all notes.
+
+By default, this returns all notes **except** notes in the trash folder and conflict notes. To include those, add `include_deleted=1` and `include_conflicts=1` as query parameters.
+
+```bash
+curl http://localhost:41184/notes?token=YOUR_TOKEN
+```
+
+### GET /notes/:id
+
+Gets the note with the given ID.
+
+```bash
+curl http://localhost:41184/notes/ABCD1234?token=YOUR_TOKEN
+```
+
+### GET /notes/:id/tags
+
+Gets all tags attached to this note.
+
+```bash
+curl http://localhost:41184/notes/ABCD1234/tags?token=YOUR_TOKEN
+```
+
+### GET /notes/:id/resources
+
+Gets all resources attached to this note.
+
+```bash
+curl http://localhost:41184/notes/ABCD1234/resources?token=YOUR_TOKEN
+```
+
+### POST /notes
+
+Creates a new note. Specify the body as Markdown using the `body` field, or as HTML using `body_html`.
+
+<ParamField body="title" type="string">
+  The note title.
+</ParamField>
+
+<ParamField body="body" type="string">
+  The note body in Markdown.
+</ParamField>
+
+<ParamField body="body_html" type="string">
+  The note body in HTML. Use instead of `body` when creating a note from HTML content.
+</ParamField>
+
+<ParamField body="parent_id" type="string">
+  ID of the notebook to place the note in.
+</ParamField>
+
+<ParamField body="id" type="string">
+  A custom note ID. Must be a 32-character hexadecimal string. Normally you do not need to set this — Joplin assigns a unique ID automatically.
+</ParamField>
+
+<ParamField body="image_data_url" type="string">
+  An image to attach, in Data URL format.
+</ParamField>
+
+<Tabs>
+  <Tab title="From Markdown">
+    ```bash
+    curl --data '{ "title": "My note", "body": "Some note in **Markdown**"}' http://127.0.0.1:41184/notes
+    ```
+  </Tab>
+  <Tab title="From HTML">
+    ```bash
+    curl --data '{ "title": "My note", "body_html": "Some note in <b>HTML</b>"}' http://127.0.0.1:41184/notes
+    ```
+  </Tab>
+  <Tab title="With image">
+    ```bash
+    curl --data '{ "title": "Image test", "body": "Here is Joplin icon:", "image_data_url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAANZJREFUeNoAyAA3/wFwtO3K6gUB/vz2+Prw9fj/+/r+/wBZKAAExOgF4/MC9ff+MRH6Ui4E+/0Bqc/zutj6AgT+/Pz7+vv7++nu82c4DlMqCvLs8goA/gL8/fz09fb59vXa6vzZ6vjT5fbn6voD/fwC8vX4UiT9Zi//APHyAP8ACgUBAPv5APz7BPj2+DIaC2o3E+3o6ywaC5fT6gD6/QD9/QEVf9kD+/dcLQgJA/7v8vqfwOf18wA1IAIEVycAyt//v9XvAPv7APz8LhoIAPz9Ri4OAgwARgx4W/6fVeEAAAAASUVORK5CYII="}' http://127.0.0.1:41184/notes
+    ```
+  </Tab>
+  <Tab title="With custom ID">
+    ```bash
+    curl --data '{ "id": "00a87474082744c1a8515da6aa5792d2", "title": "My note with custom ID"}' http://127.0.0.1:41184/notes
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+  When creating a note with a custom ID, it must be a **32-character hexadecimal string** and must be unique. Use a GUID generator in your programming language to produce one.
+</Note>
+
+### PUT /notes/:id
+
+Updates the properties of the note with the given ID. Only the properties you include are changed; all others remain untouched.
+
+```bash
+curl -X PUT --data '{ "title": "Updated title" }' http://localhost:41184/notes/ABCD1234
+```
+
+### DELETE /notes/:id
+
+Deletes the note with the given ID. By default, the note is moved to the **trash**. To permanently delete it, add `permanent=1`:
+
+```bash
+curl -X DELETE http://localhost:41184/notes/ABCD1234?permanent=1
+```
+
+### DELETE /notes/:id/revisions
+
+Deletes all revisions attached to this note.
+
+```bash
+curl -X DELETE http://localhost:41184/notes/ABCD1234/revisions
+```
+
+---
+
+## Notebooks (folders)
+
+Notebooks are called "folders" internally. All folder endpoints use `/folders`.
+
+### Properties
+
+<ResponseField name="id" type="text">
+  Unique identifier of the folder.
+</ResponseField>
+
+<ResponseField name="title" type="text">
+  The folder title.
+</ResponseField>
+
+<ResponseField name="created_time" type="int">
+  When the folder was created (Unix timestamp in milliseconds).
+</ResponseField>
+
+<ResponseField name="updated_time" type="int">
+  When the folder was last updated (Unix timestamp in milliseconds).
+</ResponseField>
+
+<ResponseField name="user_created_time" type="int">
+  When the folder was created. May differ from `created_time` if manually set by the user.
+</ResponseField>
+
+<ResponseField name="user_updated_time" type="int">
+  When the folder was last updated. May differ from `updated_time` if manually set by the user.
+</ResponseField>
+
+<ResponseField name="parent_id" type="text">
+  ID of the parent folder. Empty if this is a top-level notebook.
+</ResponseField>
+
+<ResponseField name="is_shared" type="int">
+  `1` if the folder is shared; `0` otherwise.
+</ResponseField>
+
+<ResponseField name="share_id" type="text">
+  The ID of the Joplin Server/Cloud share containing the folder. Empty if not shared.
+</ResponseField>
+
+<ResponseField name="icon" type="text">
+  The folder icon.
+</ResponseField>
+
+### GET /folders
+
+Gets all folders. The folders are returned as a tree — sub-notebooks of a notebook are listed under its `children` key.
+
+```bash
+curl http://localhost:41184/folders?token=YOUR_TOKEN
+```
+
+### GET /folders/:id
+
+Gets the folder with the given ID.
+
+```bash
+curl http://localhost:41184/folders/ABCD1234?token=YOUR_TOKEN
+```
+
+### GET /folders/:id/notes
+
+Gets all notes inside this folder.
+
+```bash
+curl http://localhost:41184/folders/ABCD1234/notes?token=YOUR_TOKEN
+```
+
+### POST /folders
+
+Creates a new folder.
+
+<ParamField body="title" type="string" required>
+  The folder title.
+</ParamField>
+
+<ParamField body="parent_id" type="string">
+  ID of the parent folder. Omit to create a top-level notebook.
+</ParamField>
+
+```bash
+curl --data '{ "title": "My Notebook" }' http://localhost:41184/folders
+```
+
+### PUT /folders/:id
+
+Updates the properties of the folder with the given ID.
+
+```bash
+curl -X PUT --data '{ "title": "Renamed Notebook" }' http://localhost:41184/folders/ABCD1234
+```
+
+### DELETE /folders/:id
+
+Deletes the folder with the given ID. By default, the folder is moved to the **trash**. To permanently delete it, add `permanent=1`:
+
+```bash
+curl -X DELETE http://localhost:41184/folders/ABCD1234?permanent=1
+```
+
+---
+
+## Tags
+
+### Properties
+
+<ResponseField name="id" type="text">
+  Unique identifier of the tag.
+</ResponseField>
+
+<ResponseField name="title" type="text">
+  The tag title.
+</ResponseField>
+
+<ResponseField name="created_time" type="int">
+  When the tag was created (Unix timestamp in milliseconds).
+</ResponseField>
+
+<ResponseField name="updated_time" type="int">
+  When the tag was last updated (Unix timestamp in milliseconds).
+</ResponseField>
+
+<ResponseField name="user_created_time" type="int">
+  When the tag was created. May differ from `created_time` if manually set by the user.
+</ResponseField>
+
+<ResponseField name="user_updated_time" type="int">
+  When the tag was last updated. May differ from `updated_time` if manually set by the user.
+</ResponseField>
+
+<ResponseField name="parent_id" type="text">
+  ID of the parent tag, if any.
+</ResponseField>
+
+### GET /tags
+
+Gets all tags.
+
+```bash
+curl http://localhost:41184/tags?token=YOUR_TOKEN
+```
+
+### GET /tags/:id
+
+Gets the tag with the given ID.
+
+```bash
+curl http://localhost:41184/tags/ABCD1234?token=YOUR_TOKEN
+```
+
+### GET /tags/:id/notes
+
+Gets all notes with this tag.
+
+```bash
+curl http://localhost:41184/tags/ABCD1234/notes?token=YOUR_TOKEN
+```
+
+### POST /tags
+
+Creates a new tag.
+
+<ParamField body="title" type="string" required>
+  The tag title.
+</ParamField>
+
+```bash
+curl --data '{ "title": "project" }' http://localhost:41184/tags
+```
+
+### POST /tags/:id/notes
+
+Adds a tag to a note. The request body must include at least the note's `id` — all other properties are ignored.
+
+<ParamField body="id" type="string" required>
+  The ID of the note to tag.
+</ParamField>
+
+```bash
+curl --data '{ "id": "NOTE_ID" }' http://localhost:41184/tags/ABCD1234/notes
+```
+
+### PUT /tags/:id
+
+Updates the properties of the tag with the given ID.
+
+```bash
+curl -X PUT --data '{ "title": "new-name" }' http://localhost:41184/tags/ABCD1234
+```
+
+### DELETE /tags/:id
+
+Deletes the tag with the given ID.
+
+```bash
+curl -X DELETE http://localhost:41184/tags/ABCD1234
+```
+
+### DELETE /tags/:id/notes/:note_id
+
+Removes a tag from a note.
+
+```bash
+curl -X DELETE http://localhost:41184/tags/ABCD1234/notes/EFGH789
+```

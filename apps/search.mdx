@@ -1,0 +1,116 @@
+---
+title: "Search"
+description: "Find notes instantly using Joplin's full-text search, advanced filters, and the Goto Anything shortcut."
+---
+
+Joplin implements the SQLite Full Text Search (FTS4) extension. All note content is indexed in real time, so queries return results very quickly. Both [simple FTS queries](https://www.sqlite.org/fts3.html#simple_fts_queries) and [full-text index queries](https://www.sqlite.org/fts3.html#full_text_index_queries) are supported.
+
+## Basic query types
+
+| Search type | Description | Example |
+|---|---|---|
+| **Single word** | Returns notes containing that exact word. Does not match substrings — searching `cat` will not match notes containing `cataclysmic`. | `cat` |
+| **Multiple words** | Returns notes containing **all** of the specified words anywhere in the note, in any order. | `dog cat` |
+| **Phrase** | Returns notes containing the exact phrase, in that order. Wrap in double quotes. | `"shopping list"` |
+| **Prefix wildcard** | Returns notes containing words that start with the given prefix. The wildcard `*` must be at the end. | `swim*` |
+| **Basic search** | Prefix your query with `/` to bypass FTS and search for exact character sequences, including non-alphabetical characters. Useful for things like unchecked checkboxes. Can be slow on large note collections. | `/"- [ ]"` |
+
+<Warning>
+The `*` wildcard only works at the end of a word in FTS mode. A wildcard at the beginning (`*swim`) is ignored, and one in the middle (`ast*rix`) is treated as a literal asterisk. In the custom search mode enabled for CJK languages (Chinese, Japanese, Korean, Thai), these restrictions do not apply.
+</Warning>
+
+## Search filters
+
+Combine filters with plain search terms to narrow results. Multiple filters are connected by AND by default. Use `any:1` to switch to OR logic.
+
+| Filter | Description | Examples |
+|---|---|---|
+| `-` (negation) | Exclude notes containing the following term or matching the following filter. | `-spam` — notes without the word "spam"<br />`office -trash` — notes with "office" but not "trash" |
+| `any:` | `any:0` (default) requires all conditions. `any:1` requires at least one condition. | `any:1 cat dog` — notes with "cat" or "dog" |
+| `title:` | Restrict to the note title field only. | `title:"hello world"` |
+| `body:` | Restrict to the note body field only. | `title:hello -body:world` |
+| `tag:` | Restrict to notes with the specified tag. Supports wildcards and negation. `tag:*` returns all tagged notes; `-tag:*` returns all untagged notes. | `tag:office`<br />`tag:office tag:important`<br />`tag:be*ful`<br />`-tag:*` |
+| `notebook:` | Restrict to the specified notebook and all its subnotebooks. Multiple `notebook:` filters are connected by OR. | `notebook:books`<br />`notebook:wheel*time` |
+| `created:` | Filter by creation date in `YYYYMMDD` format, or relative to today. | `created:20201218`<br />`created:day-2` |
+| `updated:` | Filter by last-modified date in `YYYYMMDD` format, or relative to today. | `-updated:20201218`<br />`updated:year-0` |
+| `due:` | Filter to-dos by their due date, relative to today. | `-due:day+7`<br />`-due:day-5` |
+| `type:` | Restrict to notes or to-dos. | `type:note`<br />`type:todo` |
+| `iscompleted:` | Restrict to completed (`1`) or uncompleted (`0`) to-dos. | `iscompleted:1`<br />`iscompleted:0` |
+| `latitude:` / `longitude:` / `altitude:` | Filter by geo-location. | `latitude:40 -latitude:50` |
+| `resource:` | Filter by attachment MIME type. Supports wildcards. | `resource:image/jpeg`<br />`resource:image/*`<br />`-resource:application/pdf` |
+| `sourceurl:` | Filter by the source URL stored on the note. | `sourceurl:*joplinapp.org` |
+| `id:` | Return the note with an exact note ID. | `id:9cbc1b4f242043a9b8a50627508bccd5` |
+
+<Note>
+In the CLI client, escape negated filters with `--` to prevent the shell from interpreting the leading `-` as a flag: `:search -- "-tag:tag1"`.
+</Note>
+
+## Filter logic rules
+
+- By default all filters are connected by **AND**.
+- Use `any:1` to switch the connective to **OR** for all terms in the query.
+- `notebook:` filters are always connected by **OR** with each other, because a note can only belong to one notebook at a time.
+- An unrecognised or misspelled filter is treated as a phrase search rather than an error.
+
+## Date filter formats
+
+Date filters accept absolute and relative values.
+
+<AccordionGroup>
+  <Accordion title="Absolute date formats">
+    | Format | Meaning |
+    |---|---|
+    | `YYYYMMDD` | Specific day (e.g. `20201218`) |
+    | `YYYYMM` | Any day in that month (e.g. `202012`) |
+    | `YYYY` | Any day in that year (e.g. `2020`) |
+
+    All absolute date filters match notes created/updated **on or after** the specified date. Negate with `-` to match notes **before** that date.
+
+    Use two date filters together to define a range:
+
+    ```
+    created:20200118 -created:20201215
+    ```
+  </Accordion>
+  <Accordion title="Relative date formats">
+    Relative values are calculated at search time.
+
+    | Format | Meaning |
+    |---|---|
+    | `day-N` | N days in the past |
+    | `day+N` | N days in the future |
+    | `week-N` | N weeks in the past |
+    | `month-N` | N months in the past |
+    | `year-0` | The current year |
+    | `year-N` | N years in the past |
+
+    Examples:
+
+    ```
+    created:day-2          — notes created in the last 2 days
+    updated:year-0         — notes updated this year
+    -due:day+7             — to-dos due within the next 7 days
+    -due:day-5             — to-dos overdue by more than 5 days
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Search order
+
+Results are sorted by relevance. Notes that contain the search terms more frequently appear higher in the list. For multi-term queries, how close the terms are to each other also affects ranking. The BM25 ranking algorithm is used in FTS mode; results in the custom CJK search mode may be ordered less precisely.
+
+## Goto Anything
+
+The desktop app includes a **Goto Anything** dialog that lets you jump to a note by title or content without leaving the keyboard.
+
+Press <kbd>Ctrl+P</kbd> (Windows/Linux) or <kbd>Cmd+P</kbd> (macOS) to open it, or go to **Go** in the menu bar.
+
+| Prefix | Searches |
+|---|---|
+| _(no prefix)_ | Note title or content |
+| `#` | Tag name |
+| `@` | Notebook name |
+
+<Tip>
+Goto Anything is the fastest way to navigate between notes when you know what you're looking for. It searches titles and content simultaneously.
+</Tip>

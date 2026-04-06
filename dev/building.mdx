@@ -1,0 +1,236 @@
+---
+title: 'Building from source'
+description: 'How to set up the Joplin monorepo and build each application from source.'
+---
+
+Joplin is a monorepo managed with [Yarn workspaces](https://yarnpkg.com/features/workspaces) and [Lerna](https://lerna.js.org/). All packages live under the `packages/` directory and share a single `node_modules` tree at the root.
+
+## Repository structure
+
+The main packages are:
+
+| Package | Description |
+|---|---|
+| `app-cli` | Terminal application |
+| `app-clipper` | Browser web clipper extension |
+| `app-desktop` | Electron desktop application |
+| `app-mobile` | React Native mobile application (Android, iOS, Web) |
+| `lib` | Core library shared by all applications — synchronisation, encryption, import/export, database, and all business logic |
+| `renderer` | Joplin Markdown and HTML renderer |
+| `server` | Joplin Server |
+| `tools` | Build scripts and release tooling |
+
+Several `fork-*` packages are vendored forks of upstream libraries.
+
+## Required dependencies
+
+All required dependencies are declared in `devbox.json` at the project root. On Linux or macOS you can install them automatically using [devbox](https://www.jetify.com/docs/devbox/quickstart/):
+
+```sh
+devbox shell
+```
+
+If you are working on the `onenote-converter` package, you also need the [Rust toolchain](https://rustup.rs/).
+
+The root `package.json` requires:
+
+- **Node.js** `>=18`
+- **Yarn** `4.9.2`
+
+<Warning>
+Make sure the path to the project directory does not contain spaces. The build may fail if it does.
+</Warning>
+
+<Note>
+On Windows, use the regular Command Prompt. Building inside WSL is not supported and not recommended.
+</Note>
+
+## Initial setup
+
+Before doing anything else, install all dependencies from the repository root:
+
+```sh
+yarn install
+```
+
+This installs packages across all workspaces and runs the `postinstall` script, which sets up Husky git hooks and runs the initial Gulp build.
+
+## Watching for changes
+
+Joplin is written in TypeScript. Compiled `.js` files are generated next to each `.ts` source file. To rebuild automatically as you edit:
+
+```sh
+yarn watch
+```
+
+To compile once without watching:
+
+```sh
+yarn tsc
+```
+
+<Info>
+If you are making changes to the note editor, viewer, or other WebView content in the mobile app, run `yarn watchInjectedJs` from `packages/app-mobile` to rebuild WebView JavaScript files on change.
+</Info>
+
+## Building the desktop app
+
+<Steps>
+  <Step title="Install dependencies">
+    From the repository root, run `yarn install` if you haven't already.
+  </Step>
+  <Step title="Start the app">
+    ```sh
+    cd packages/app-desktop
+    yarn start
+    ```
+  </Step>
+  <Step title="Pass additional flags">
+    To pass extra flags to the application, append `--` before the flags:
+    ```sh
+    yarn start -- --debug
+    ```
+  </Step>
+</Steps>
+
+## Building the terminal app
+
+```sh
+cd packages/app-cli
+yarn start
+```
+
+You can pass additional flags the same way as the desktop app:
+
+```sh
+yarn start -- --debug
+```
+
+## Building the mobile app
+
+First, set up the React Native development environment by following the **React Native CLI Quickstart** section of the [Setting up the development environment](https://reactnative.dev/docs/environment-setup) guide.
+
+<Tabs>
+  <Tab title="Android">
+    Build and install the app on an emulator or connected device:
+
+    ```sh
+    cd packages/app-mobile/android
+    ./gradlew installDebug
+    ```
+
+    On Windows, use `gradlew.bat` instead:
+
+    ```sh
+    gradlew.bat installDebug
+    ```
+  </Tab>
+  <Tab title="iOS">
+    CocoaPods dependencies are not installed automatically (the process takes too long). You have two options:
+
+    **Option 1** — Pass the flag when installing dependencies:
+
+    ```sh
+    RUN_POD_INSTALL=1 yarn install
+    ```
+
+    **Option 2** — Run `pod install` manually:
+
+    ```sh
+    cd packages/app-mobile/ios
+    pod install
+    ```
+
+    After pods are installed, open `ios/Joplin.xcworkspace` in Xcode and run the app from there.
+
+    If the Metro bundler does not start automatically, start it manually:
+
+    ```sh
+    cd packages/app-mobile
+    yarn start
+    ```
+  </Tab>
+  <Tab title="Web">
+    To run the mobile app in a browser using a development server on port `8088`:
+
+    ```sh
+    cd packages/app-mobile
+    yarn serve-web
+    ```
+
+    The built version auto-reloads the full page on source changes. For hot module replacement instead:
+
+    ```sh
+    yarn serve-web-hot-reload
+    ```
+
+    To create a release build (output goes to `packages/app-mobile/web/dist`):
+
+    ```sh
+    yarn web
+    ```
+  </Tab>
+</Tabs>
+
+## Building the web clipper
+
+```sh
+cd packages/app-clipper/popup
+npm run watch
+```
+
+To load the unpacked extension into your browser, follow the relevant guide:
+
+- **Firefox**: [Your first WebExtension](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Your_first_WebExtension#Trying_it_out)
+- **Chrome**: [Getting started guide](https://developer.chrome.com/docs/extensions/mv3/getstarted/)
+
+<Note>
+The extension in dev mode only connects to a dev instance of the desktop app, and vice-versa.
+</Note>
+
+## Running tests
+
+Run all tests across all workspaces from the repository root:
+
+```sh
+yarn test
+```
+
+To run tests for a single package, navigate to that package first:
+
+```sh
+cd packages/lib
+yarn test
+```
+
+To run a specific test file:
+
+```sh
+yarn test markdownUtils
+```
+
+To run a specific test within a file:
+
+```sh
+yarn test markdownUtils --filter="should handle conflict"
+```
+
+Test files use the `.test.ts` extension and live alongside the source files they cover. Joplin uses [Jest](https://jestjs.io/) as the testing framework.
+
+## Linting
+
+To run the linter across the full codebase:
+
+```sh
+yarn linter ./
+```
+
+To interactively suppress pre-existing errors (keeping new code clean while leaving old code untouched):
+
+```sh
+yarn linter-interactive ./
+```
+
+## Troubleshooting
+
+If you encounter build issues, consult the [Build Troubleshooting Document](https://github.com/laurent22/joplin/blob/dev/readme/dev/build_troubleshooting.md).

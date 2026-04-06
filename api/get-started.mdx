@@ -1,0 +1,175 @@
+---
+title: "Get started with plugin development"
+description: "Scaffold, build, and test your first Joplin plugin using the Yeoman generator and development mode."
+---
+
+This guide walks you through creating a working Joplin plugin from scratch. By the end you will have a running "Hello World" plugin loaded into Joplin.
+
+## Prerequisites
+
+Before you begin, make sure you have the following installed:
+
+- [Node.js](https://nodejs.org/) (includes npm)
+- [git](https://git-scm.com/)
+- [Joplin](https://joplinapp.org/) desktop app
+
+## Create your plugin
+
+<Steps>
+  <Step title="Install the Yeoman generator">
+    Install [Yeoman](https://yeoman.io/) and the Joplin plugin generator globally:
+
+    ```bash
+    npm install -g yo@4.3.1
+    npm install -g generator-joplin
+    ```
+  </Step>
+
+  <Step title="Scaffold the plugin">
+    In the directory where you want to create your plugin, run:
+
+    ```bash
+    yo --node-package-manager npm joplin
+    ```
+
+    The generator will prompt you for several values:
+
+    - **Plugin ID** — a globally unique identifier such as `com.example.MyPlugin` or a UUID
+    - **Plugin name** — a user-friendly name displayed in the Joplin UI
+    - **Plugin description** — a short summary of what the plugin does
+    - **Author** — your name
+    - **Repository URL** — the URL of the plugin's source repository
+    - **Homepage URL** — a link to your plugin's homepage or repository
+
+    Once you answer the prompts, the generator creates all required files in the current directory.
+  </Step>
+
+  <Step title="Initialise source control">
+    In your plugin directory, run:
+
+    ```bash
+    git init
+    ```
+  </Step>
+
+  <Step title="Understand the project structure">
+    The generator produces the following layout:
+
+    <Tree>
+      <Tree.Folder name="src" defaultOpen>
+        <Tree.File name="index.ts" />
+        <Tree.File name="manifest.json" />
+      </Tree.Folder>
+      <Tree.Folder name="api">
+      </Tree.Folder>
+      <Tree.File name="package.json" />
+      <Tree.File name="plugin.config.json" />
+      <Tree.File name="tsconfig.json" />
+      <Tree.File name="webpack.config.js" />
+      <Tree.File name="GENERATOR_DOC.md" />
+    </Tree>
+
+    The two files you will work with most are:
+
+    - **`src/index.ts`** — the entry point for your plugin code.
+    - **`src/manifest.json`** — metadata about your plugin (name, version, author, etc.).
+
+    The file `plugin.config.json` is relevant if you plan to use [content scripts](https://joplinapp.org/api/references/plugin_api/classes/joplincontentscripts.html) or [webview scripts](https://joplinapp.org/api/references/plugin_api/classes/joplinviewspanels.html#addscript) that need to be compiled separately (see [external script files](#external-script-files) below).
+
+    The generated `src/index.ts` contains a minimal Hello World plugin:
+
+    ```typescript
+    import joplin from 'api';
+
+    joplin.plugins.register({
+      onStart: async function() {
+        console.info('Hello world. Test plugin started!');
+      },
+    });
+    ```
+
+    Two things to note:
+
+    1. Every plugin calls `joplin.plugins.register` to register itself with the application.
+    2. The `onStart` handler is called when the plugin starts.
+  </Step>
+
+  <Step title="Run Joplin in development mode">
+    You should always test your plugin in development mode. This opens a second copy of Joplin using a separate profile with test notes and notebooks, so you can experiment without risking your personal data.
+
+    To enable development mode, go to **Help > Copy dev mode command to clipboard** in Joplin. This copies a terminal command to your clipboard. Paste and run it in your shell to launch the development instance.
+  </Step>
+
+  <Step title="Build the plugin">
+    From the root of your plugin directory, run:
+
+    ```bash
+    npm run dist
+    ```
+
+    This compiles your TypeScript source and packages everything into the `dist/` directory. A `.jpl` archive is also created in the `publish/` directory, which you can use to distribute the plugin.
+  </Step>
+
+  <Step title="Load the plugin in Joplin">
+    Open the **development** instance of Joplin and go to **Configuration > Plugins**. Under **Advanced Settings**, find the **Development plugins** text field and enter the full path to your plugin's root directory — for example, `/home/you/my-plugin`.
+
+    Restart the development app from the terminal. Joplin will load the plugin and call its `onStart` handler. If everything worked, you will see `Hello world. Test plugin started!` in the plugin console, and the plugin will appear under **Settings > Plugins**.
+  </Step>
+</Steps>
+
+## External script files
+
+By default, webpack compiles only `src/index.ts` (and any file it imports). Other files are copied into the plugin package without compilation. If you have content scripts or webview scripts that are written in TypeScript, or that import npm packages, you need to compile them too.
+
+To compile an additional script, add its path (relative to `src/`) to the `extraScripts` array in `plugin.config.json`:
+
+```json
+{
+  "extraScripts": ["webviews/index.ts"]
+}
+```
+
+Once compiled, the file will be placed in the plugin package as `webviews/index.js`. Use that `.js` path when referencing the file from your plugin code.
+
+## Updating the plugin framework
+
+To update the generator scaffolding files in an existing plugin (without touching `src/` or `README.md`), run:
+
+```bash
+npm run update
+```
+
+This merges changes into `package.json` and `.gitignore`. Note that `webpack.config.js` will be overwritten — if you have customised it, extract your changes into a separate file and import it from `webpack.config.js` so they survive updates.
+
+## Publishing the plugin
+
+To publish your plugin to the Joplin plugin repository, publish it to npm:
+
+```bash
+npm publish
+```
+
+An automated script will detect your package and add it to the repository, provided:
+
+- The `name` field in `package.json` starts with `joplin-plugin-` (for example, `joplin-plugin-toc`).
+- The `keywords` array in `package.json` includes `joplin-plugin`.
+- The `publish/` directory contains the `.jpl` and `.json` files produced by `npm run dist`.
+
+The generator sets all of this up automatically.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Plugin manifest reference" icon="file-code" href="/api/plugin-manifest">
+    See all supported fields in `manifest.json`.
+  </Card>
+  <Card title="Plugin theming" icon="palette" href="/api/plugin-theming">
+    Apply Joplin's active theme to your plugin's webview panels.
+  </Card>
+  <Card title="Plugin API reference" icon="book" href="https://joplinapp.org/api/references/plugin_api/classes/joplin.html">
+    Full reference for every class and method exposed by the Plugin API.
+  </Card>
+  <Card title="Community forum" icon="comments" href="https://discourse.joplinapp.org/">
+    Ask questions and share plugin ideas with the Joplin community.
+  </Card>
+</CardGroup>

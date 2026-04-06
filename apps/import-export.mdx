@@ -1,0 +1,140 @@
+---
+title: "Import and export"
+description: "Import notes from Evernote, OneNote, and Markdown files. Export to JEX, HTML, PDF, and more."
+---
+
+## Importing
+
+### Importing from Evernote
+
+Joplin can import complete Evernote notebooks — including notes, tags, attached files, and metadata such as author and geo-location — via ENEX files.
+
+#### What is preserved
+
+Most Evernote content imports without loss. A few things differ:
+
+<AccordionGroup>
+  <Accordion title="OCR / recognition data">
+    Evernote attaches recognition data (OCR text) to images and scanned documents. This data is not carried over in the ENEX format. If you have OCR enabled in Joplin, it will re-process imported images and generate new recognition data in Joplin's own format.
+  </Accordion>
+  <Accordion title="Colours, font sizes, and font faces">
+    Evernote stores note content as HTML, which Joplin converts to Markdown during import. For notes with basic formatting — bold, italic, bullet points, links, tables — the conversion is lossless. However, custom colours, font sizes, and font faces are not preserved. The full text content is always imported. If preserving formatting is essential, Joplin also supports importing ENEX files as HTML rather than Markdown.
+  </Accordion>
+  <Accordion title="Links between notes">
+    Links between notes are mostly preserved. The ENEX format does not include the target note ID in its link data, so Joplin guesses the target based on the note title. This works in most cases, but can fail when multiple notes share the same title or when the link text differs from the target note's title. When Joplin cannot resolve a link, the original Evernote link is kept unchanged.
+  </Accordion>
+</AccordionGroup>
+
+#### How to import
+
+First, export your Evernote notebooks to ENEX files using the [Evernote export guide](https://help.evernote.com/hc/en-us/articles/209005557-How-to-back-up-export-and-restore-import-notes-and-notebooks). Then follow the steps for your app:
+
+<Tabs>
+  <Tab title="Desktop">
+    Go to **File > Import > ENEX** and select your file or directory.
+
+    - A single `.enex` file is imported into a new notebook with the same name as the file.
+    - A directory of `.enex` files creates one notebook per file.
+
+    After importing, notes can be moved to different notebooks or the notebook can be renamed.
+  </Tab>
+  <Tab title="Terminal">
+    In [command-line mode](/apps/terminal), run:
+
+    ```bash
+    import /path/to/file.enex
+    ```
+
+    This imports the notes into a new notebook named after the filename. You can also point to a directory to import multiple ENEX files at once.
+  </Tab>
+</Tabs>
+
+### Importing from Markdown files
+
+Joplin can import plain Markdown files, preserving the directory structure as a notebook hierarchy.
+
+<Tabs>
+  <Tab title="Desktop">
+    - **Single file:** Go to **File > Import > MD - Markdown (file)** and select a `.md` file. It is imported into the currently selected notebook.
+    - **Directory:** Go to **File > Import > MD - Markdown (directory)** and select the top-level folder. The folder structure is mapped to notebooks and subnotebooks inside Joplin.
+  </Tab>
+  <Tab title="Terminal">
+    In command-line mode, run:
+
+    ```bash
+    import --format md /path/to/file.md
+    ```
+
+    Or, for a directory:
+
+    ```bash
+    import --format md /path/to/directory/
+    ```
+  </Tab>
+</Tabs>
+
+### Importing from OneNote
+
+Joplin can import OneNote notebooks through two methods, depending on where your data is stored.
+
+<AccordionGroup>
+  <Accordion title="From OneNote Online (OneDrive)" defaultOpen={false}>
+    Requires Joplin v3.5.1 or later. The notebook must be stored on OneDrive. This method [may not work for notebooks larger than 2–4 GB](https://learn.microsoft.com/en-us/answers/questions/5437286/why-cant-i-fully-download-my-onenote-files-from-on).
+
+    <Steps>
+      <Step title="Open OneNote Web">
+        Go to [onenote.com/notebooks](https://www.onenote.com/notebooks) and click **Show all notebooks**. This opens a OneDrive page.
+      </Step>
+      <Step title="Download the notebook folder">
+        On OneDrive, go to **My Files**, right-click the folder containing your notebooks, and click **Download**. If needed, move the notebooks into a single folder first. The download produces a ZIP file.
+      </Step>
+      <Step title="Import into Joplin">
+        Open the Joplin desktop app and go to **File > Import > ZIP - OneNote Notebook**. Select the downloaded ZIP file.
+      </Step>
+    </Steps>
+  </Accordion>
+  <Accordion title="From the OneNote Windows desktop app" defaultOpen={false}>
+    Requires Joplin v3.5.5 or later and the OneNote Windows desktop app. Note that [OneNote for Windows 10 is a different application](https://support.microsoft.com/en-us/office/what-s-the-difference-between-the-onenote-versions-a624e692-b78b-4c09-b07f-46181958118f#id0ebd=windows) and is not the same as the OneNote desktop app.
+
+    <Steps>
+      <Step title="Export from OneNote">
+        Open OneNote and go to **File > Export**.
+      </Step>
+      <Step title="Choose the export format">
+        Select **Section** and then **OneNote 2010-2016 Section (`.one`/`.onex`)**.
+
+        Alternatively, select **Notebook** and then **OneNote Package (`.onepkg`)**. Note that `.onepkg` files can only be imported on Windows.
+      </Step>
+      <Step title="Import into Joplin">
+        Open the Joplin desktop app and go to **File > Import > ZIP - OneNote Notebook**. Select the exported file.
+      </Step>
+    </Steps>
+  </Accordion>
+</AccordionGroup>
+
+### Importing from other applications
+
+For other note-taking applications, the recommended approach is to first convert your notes to ENEX (Evernote format), HTML, or Markdown, and then import those files into Joplin. The Joplin community maintains a guide for specific applications: [Importing notes from other notebook applications](https://discourse.joplinapp.org/t/importing-notes-from-other-notebook-applications/22425).
+
+---
+
+## Exporting
+
+Joplin can export notes, notebooks, or your entire library to several formats.
+
+<CardGroup cols={2}>
+  <Card title="JEX (Joplin Export)" icon="file-zipper">
+    A `.jex` tar archive that preserves notes, notebooks, tags, attachments, and all metadata (geo-location, timestamps, etc.). This is the recommended format for backups because it is lossless and can be re-imported into Joplin.
+  </Card>
+  <Card title="Raw format" icon="folder-open">
+    The same data as JEX, but saved to a directory with each item as an individual file. Useful for programmatic processing or version control.
+  </Card>
+  <Card title="HTML" icon="code">
+    Export notes as self-contained HTML files. Can be done for individual notes, notebooks, or the entire library.
+  </Card>
+  <Card title="PDF" icon="file-pdf">
+    Export notes as PDF documents. Can be done for individual notes, notebooks, or the entire library.
+  </Card>
+</CardGroup>
+
+To export, go to **File > Export** in the desktop app and select the target format and scope.

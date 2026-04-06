@@ -1,0 +1,66 @@
+---
+title: "Plugin Development overview"
+description: "Joplin provides two main extension points: the Plugin API for building in-app features, and the Data API for accessing Joplin data from external applications."
+---
+
+Joplin provides a number of extension points to allow third-party applications to access its data, or to develop plugins. The two main approaches are the Plugin API and the Data API — each suited to different use cases.
+
+## Plugin API
+
+The Plugin API lets you directly modify and extend the Joplin application itself. Plugins run inside Joplin and have access to the full set of application features. Using the Plugin API, you can:
+
+- Access notes, notebooks, and tags via the Data API
+- Add a webview panel to display custom HTML/CSS/JS content
+- Create dialogs to display information and get input from the user
+- Create new commands and associate them with toolbar buttons or menu items
+- Read and modify the note currently being edited
+- Listen to application events and run code in response
+- Hook into Joplin to customise its behaviour and set additional options
+- Create import and export modules for custom data formats
+- Define new settings sections and get or set them from the plugin
+- Create Markdown plugins to render custom markup
+- Create editor plugins to modify the behaviour of the CodeMirror editor at a low level
+
+Plugins are distributed as `.jpl` archives and can be installed directly through **Settings > Plugins**.
+
+<Note>
+  Use the Plugin API when you want to add features to Joplin itself — new UI panels, commands, menu items, or editor behaviour.
+</Note>
+
+## Data API
+
+The [Data API](/api/rest-api) is a REST API that exposes Joplin data to external applications over HTTP. Using standard HTTP calls, you can create, modify, or delete notes, notebooks, and tags, as well as attach files to notes and retrieve them.
+
+This is the API used by the Joplin Web Clipper to communicate with the desktop app. It is the right choice when you have a standalone application that needs to read or write Joplin data without running inside Joplin itself.
+
+<Note>
+  Use the Data API when you have an external application — a script, a web service, or a CLI tool — that needs to interact with Joplin data.
+</Note>
+
+## Comparison
+
+| | Plugin API | Data API |
+|---|---|---|
+| Runs inside Joplin | Yes | No |
+| Can modify the UI | Yes | No |
+| Access notes and notebooks | Yes | Yes |
+| Requires Joplin to be running | Yes | Yes |
+| Communication method | JavaScript/TypeScript module | HTTP REST |
+| Best for | In-app features and extensions | External tools and integrations |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Get started with plugins" icon="rocket" href="/api/get-started">
+    Scaffold your first plugin, build it, and load it into Joplin in development mode.
+  </Card>
+  <Card title="Plugin manifest" icon="file-code" href="/api/plugin-manifest">
+    Reference for all fields in the plugin `manifest.json` file.
+  </Card>
+  <Card title="Plugin theming" icon="palette" href="/api/plugin-theming">
+    Style your plugin UI using Joplin's built-in CSS variables to match the active theme.
+  </Card>
+  <Card title="Data API" icon="code" href="/api/rest-api">
+    Explore the REST API for reading and writing Joplin data from external applications.
+  </Card>
+</CardGroup>

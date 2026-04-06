@@ -1,28 +1,11 @@
 {
-  "$schema": "https://mintlify.com/docs.json",
-  "name": "Joplin",
+  "projectType": "saas",
+  "projectName": "Joplin",
+  "projectDescription": "Joplin is a free, open-source, privacy-focused note-taking and to-do application with end-to-end encrypted sync for Windows, macOS, Linux, Android, and iOS.",
   "theme": "almond",
-  "colors": {
-    "primary": "#1372d2",
-    "light": "#7fbfdf",
-    "dark": "#ffffff"
-  },
-  "favicon": "https://media.brand.dev/21f028e0-02e7-461c-b39d-4f9fa2a4223d.jpg",
-  "logo": {
-    "light": "https://media.brand.dev/8d646d69-c0ac-45c6-a149-6b50a9aed4f9.svg",
-    "dark": "https://media.brand.dev/8d646d69-c0ac-45c6-a149-6b50a9aed4f9.svg"
-  },
-  "navbar": {
-    "primary": {
-      "type": "github",
-      "href": "https://github.com/laurent22/joplin"
-    }
-  },
-  "footer": {
-    "socials": {
-      "github": "https://github.com/laurent22/joplin"
-    }
-  },
+  "primaryColor": "#1372d2",
+  "lightColor": "#7fbfdf",
+  "darkColor": "#ffffff",
   "navigation": {
     "tabs": [
       {
@@ -107,5 +90,36 @@
         ]
       }
     ]
-  }
+  },
+  "keyFeatures": [
+    "Cross-platform note-taking (Windows, macOS, Linux, Android, iOS)",
+    "End-to-end encrypted synchronisation",
+    "Sync with Joplin Cloud, Nextcloud, Dropbox, OneDrive, WebDAV, S3",
+    "Markdown editor with rich text support",
+    "Plugin system with extensive API",
+    "Web Clipper browser extension",
+    "Import from Evernote (ENEX) and Markdown files",
+    "Full-text search across all notes",
+    "Offline-first architecture",
+    "Open-source with self-hosting options"
+  ],
+  "publicApiSurface": [
+    "GET /notes — List notes",
+    "POST /notes — Create a note",
+    "PUT /notes/:id — Update a note",
+    "DELETE /notes/:id — Delete a note",
+    "GET /notebooks — List notebooks",
+    "POST /notebooks — Create a notebook",
+    "GET /tags — List tags",
+    "POST /tags/:id/notes — Tag a note",
+    "GET /resources — List resources/attachments",
+    "POST /resources — Upload a resource",
+    "GET /search?query= — Full-text search",
+    "joplin.data API — Plugin data access",
+    "joplin.views API — Plugin UI panels and dialogs",
+    "joplin.commands API — Register custom commands",
+    "joplin.settings API — Define and read plugin settings",
+    "joplin.workspace API — Access current note and editor",
+    "joplin.plugins API — Plugin lifecycle hooks"
+  ]
 }

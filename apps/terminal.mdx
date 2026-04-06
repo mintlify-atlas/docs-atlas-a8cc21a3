@@ -1,0 +1,711 @@
+---
+title: "Terminal app"
+description: "The Joplin terminal application for macOS, Linux, and Windows (via WSL). A full-featured, keyboard-driven note-taking interface for the command line."
+---
+
+The Joplin terminal app is a free, open-source note-taking and to-do application that runs entirely in your terminal. It can handle a large number of notes organised into notebooks. Notes are searchable, taggable, and editable with your own text editor.
+
+Notes exported from Evernote via `.enex` files can be imported into Joplin, including formatted content (converted to Markdown), resources (images, attachments, etc.), and complete metadata. Plain Markdown files can also be imported.
+
+Synchronisation is available with Joplin Cloud, Nextcloud, S3, WebDAV, Dropbox, OneDrive, and the local filesystem.
+
+## Installation
+
+The terminal app runs on macOS, Linux, and Windows via [WSL](https://docs.microsoft.com/en-us/windows/wsl/faq).
+
+<Steps>
+  <Step title="Install Node.js 12 or later">
+    Install Node.js using your package manager or from [nodejs.org](https://nodejs.org/en/download/package-manager/).
+  </Step>
+  <Step title="Install the Joplin CLI">
+    ```bash
+    NPM_CONFIG_PREFIX=~/.joplin-bin npm install --loglevel=error -g joplin
+    sudo ln -s ~/.joplin-bin/bin/joplin /usr/local/bin/joplin
+    ```
+
+    By default the binary is installed under `~/.joplin-bin`. You can change this directory if needed. If your npm permissions are configured for global installs (see [npm Option 2](https://docs.npmjs.com/getting-started/fixing-npm-permissions#option-2-change-npms-default-directory-to-another-directory)), you can instead run:
+
+    ```bash
+    npm -g install joplin
+    ```
+  </Step>
+  <Step title="Start Joplin">
+    ```bash
+    joplin
+    ```
+  </Step>
+</Steps>
+
+<Note>You can watch a short [video tutorial](https://www.youtube.com/watch?v=B6ZT_XENWmw) for a walkthrough of the installation process.</Note>
+
+### Unsupported installation methods
+
+An Arch Linux package is available on the AUR at [aur.archlinux.org/packages/joplin](https://aur.archlinux.org/packages/joplin/). Install it with an AUR helper such as `yay`:
+
+```bash
+yay -S joplin
+```
+
+Both the CLI tool (`joplin`) and the desktop app (`joplin-desktop`) are packaged. A compiled version is also available via [chaotic-aur](https://wiki.archlinux.org/index.php/Unofficial_user_repositories#chaotic-aur). For support, contact the [package maintainer](https://github.com/masterkorp/joplin-pkgbuild), not the main Joplin project.
+
+## Usage
+
+Type `joplin` to start the application. The interface has three main panes:
+
+- **Notebooks** (left) — lists your notebooks.
+- **Notes** (centre) — lists notes in the selected notebook.
+- **Note content** (right) — displays the text of the currently selected note.
+
+Additional panels can be toggled on and off via [shortcuts](#shortcuts).
+
+### Input modes
+
+The terminal app is partly based on Vim and uses two interaction modes.
+
+#### Normal mode
+
+Use `Tab` and `Shift+Tab` to move between panes. Use the arrow keys to navigate and select notes. Press `Enter` to open and edit a note. The text area can be scrolled with the arrow keys.
+
+#### Command-line mode
+
+Press `:` to enter command-line mode. From here you can run Joplin commands such as `mknote` or `search`. See the [full list of commands](#commands) below.
+
+You can refer to notes and notebooks by title or ID. The following shortcuts refer to the currently selected item:
+
+| Shortcut | Description |
+|----------|-------------|
+| `$n` | Currently selected note |
+| `$b` | Currently selected notebook |
+| `$c` | Currently selected item (note or notebook depending on which pane is active) |
+
+**Examples:**
+
+Create a new note:
+
+```
+mknote "Wednesday's meeting"
+```
+
+Create a new to-do:
+
+```
+mktodo "Buy bread"
+```
+
+Move the selected note to a notebook:
+
+```
+mv $n "Personal"
+```
+
+Rename the selected notebook:
+
+```
+ren $b "Something"
+```
+
+Attach a file to the selected note:
+
+```
+attach $n /home/laurent/pictures/Vacation12.jpg
+```
+
+Change the editor in configuration:
+
+```
+config editor "subl -w"
+```
+
+### Editing a note
+
+Select a note and press `Enter` to edit it in your configured text editor. In command-line mode you can also type:
+
+```
+edit $n
+```
+
+To edit a note by title:
+
+```
+edit "Note title"
+```
+
+### Getting help
+
+| Command | Description |
+|---------|-------------|
+| `help` | General help information |
+| `help keymap` | Lists available shortcuts |
+| `help [command]` | Displays information about a specific command |
+
+<Tip>If the help text is not fully visible, press `Tab` multiple times to focus the console, then use the arrow keys or Page Up/Down to scroll.</Tip>
+
+## Importing notes from Evernote
+
+<Steps>
+  <Step title="Export from Evernote">
+    Export your Evernote notebooks to ENEX files as described in the [Evernote help article](https://help.evernote.com/hc/en-us/articles/209005557-How-to-back-up-export-and-restore-import-notes-and-notebooks).
+  </Step>
+  <Step title="Import in Joplin">
+    In command-line mode, run:
+
+    ```
+    import /path/to/file.enex
+    ```
+
+    This imports the notes into a new notebook named after the ENEX filename.
+  </Step>
+  <Step title="Repeat for each notebook">
+    Repeat the import command for every notebook you want to bring into Joplin.
+  </Step>
+</Steps>
+
+## Synchronisation
+
+Joplin avoids dependency on any single company or service. Synchronisation is abstracted so you can switch providers easily.
+
+To sync from outside the UI (for example via a cron job), use:
+
+```bash
+joplin sync
+```
+
+Example cron entry to sync every 30 minutes:
+
+```
+*/30 * * * * /path/to/joplin sync
+```
+
+### Joplin Cloud
+
+Set `sync.target` to `10` and provide your credentials:
+
+```
+:config sync.target 10
+:config sync.10.username YOUR_EMAIL
+:config sync.10.password YOUR_PASSWORD
+```
+
+### Nextcloud
+
+```
+:config sync.target 5
+:config sync.5.path https://example.com/nextcloud/remote.php/webdav/Joplin
+:config sync.5.username YOUR_USERNAME
+:config sync.5.password YOUR_PASSWORD
+```
+
+<Note>If sync does not work, check the logs in `~/.config/joplin`. A misconfigured URL or password is the most common cause.</Note>
+
+### WebDAV
+
+Select sync target `6` and follow the same steps as for Nextcloud:
+
+```
+:config sync.target 6
+:config sync.6.path https://example.com/dav/Joplin
+:config sync.6.username YOUR_USERNAME
+:config sync.6.password YOUR_PASSWORD
+```
+
+### Dropbox
+
+```
+:config sync.target 7
+```
+
+Then type `:sync` and follow the link shown to authorise Joplin. Joplin creates a `/Apps/Joplin` sub-directory in your Dropbox and only accesses that directory.
+
+### OneDrive
+
+Type `:sync` and follow the link to sign in with your Microsoft account. Joplin creates a `/Apps/Joplin` sub-directory in your OneDrive and only accesses that directory.
+
+### Local filesystem
+
+```
+:config sync.target 2
+:config sync.2.path /path/to/local/sync/dir
+```
+
+## URLs
+
+Long URLs in the terminal can be hard to read and may be cut across lines, making them non-clickable. Joplin starts a mini local server in the background and converts all links to short local URLs, keeping them readable and clickable.
+
+Both resource links (files attached to notes) and external links are handled this way.
+
+## Attachments and resources
+
+In Markdown, attachments are represented as resource IDs. Joplin converts these to local URLs so you can click them to open the file in your default application (browser, PDF viewer, image viewer, etc.).
+
+## Shell mode
+
+Commands can be run directly from your shell without opening the interactive UI. To list all available commands:
+
+```bash
+joplin help all
+```
+
+You can reference notes and notebooks by ID (use `joplin ls -l` to see IDs) or by title.
+
+Example — create a notebook, switch to it, and add a note:
+
+```bash
+joplin mkbook "My notebook"
+joplin use "My notebook"
+joplin mknote "My note"
+```
+
+List notes with their IDs:
+
+```bash
+joplin ls -l
+# fe889 07/12/2017 17:57 My note
+```
+
+Update a note property by ID:
+
+```bash
+joplin set fe889 title "New title"
+```
+
+## Shortcuts
+
+There are two types of shortcuts: UI shortcuts (such as `Tab` to switch panes) and command shortcuts (which pre-fill the command line). Like Vim, most command shortcuts are a verb + object. For example, `mn` ([m]ake [n]ote) switches to command-line mode with `mknote ""` pre-filled.
+
+### Default shortcut map
+
+| Shortcut | Action |
+|----------|--------|
+| `:` | Enter command-line mode |
+| `Tab` | Focus next pane |
+| `Shift+Tab` | Focus previous pane |
+| `Up` / `Down` | Move up / down |
+| `Page Up` / `Page Down` | Page up / down |
+| `Enter` | Activate selected item |
+| `Delete` / `Backspace` | Delete selected item |
+| `Space` | Toggle to-do completion for selected note |
+| `n` | Select next link in note |
+| `b` | Select previous link in note |
+| `o` | Open selected link externally |
+| `tc` | Toggle console |
+| `tm` | Toggle note metadata |
+| `/` | Search |
+| `mn` | Make note (`mknote ""`) |
+| `mt` | Make to-do (`mktodo ""`) |
+| `mb` | Make notebook (`mkbook ""`) |
+| `yn` | Copy note (`cp $n ""`) |
+| `dn` | Move note (`mv $n ""`) |
+
+### Customising shortcuts
+
+Create a keymap file at `~/.config/joplin/keymap.json`. Each entry defines a command and the key(s) that trigger it:
+
+```json
+[
+  { "keys": [":"], "type": "function", "command": "enter_command_line_mode" },
+  { "keys": ["TAB"], "type": "function", "command": "focus_next" },
+  { "keys": ["SHIFT_TAB"], "type": "function", "command": "focus_previous" },
+  { "keys": ["UP"], "type": "function", "command": "move_up" },
+  { "keys": ["DOWN"], "type": "function", "command": "move_down" },
+  { "keys": ["PAGE_UP"], "type": "function", "command": "page_up" },
+  { "keys": ["PAGE_DOWN"], "type": "function", "command": "page_down" },
+  { "keys": ["ENTER"], "type": "function", "command": "activate" },
+  { "keys": ["DELETE", "BACKSPACE"], "type": "function", "command": "delete" },
+  { "keys": [" "], "command": "todo toggle $n" },
+  { "keys": ["n"], "type": "function", "command": "next_link" },
+  { "keys": ["b"], "type": "function", "command": "previous_link" },
+  { "keys": ["o"], "type": "function", "command": "open_link" },
+  { "keys": ["tc"], "type": "function", "command": "toggle_console" },
+  { "keys": ["tm"], "type": "function", "command": "toggle_metadata" },
+  { "keys": ["/"], "type": "prompt", "command": "search \"\"", "cursorPosition": -2 },
+  { "keys": ["mn"], "type": "prompt", "command": "mknote \"\"", "cursorPosition": -2 },
+  { "keys": ["mt"], "type": "prompt", "command": "mktodo \"\"", "cursorPosition": -2 },
+  { "keys": ["mb"], "type": "prompt", "command": "mkbook \"\"", "cursorPosition": -2 },
+  { "keys": ["yn"], "type": "prompt", "command": "cp $n \"\"", "cursorPosition": -2 },
+  { "keys": ["dn"], "type": "prompt", "command": "mv $n \"\"", "cursorPosition": -2 }
+]
+```
+
+Each entry supports the following properties:
+
+| Property | Description |
+|----------|-------------|
+| `keys` | Array of keys that trigger the action. Special keys must be UPPERCASE (e.g. `"PAGE_UP"`, `"CTRL_W"`). Key sequences are written as a lowercase string (e.g. `"tc"`). |
+| `type` | `"exec"` — run the command immediately. `"function"` — run a special UI function. `"prompt"` — pre-fill the command line so the user can complete it before executing. |
+| `command` | The command or function to execute. |
+| `cursorPosition` | For `"prompt"` type: where to place the cursor. Negative values count from the end. `0` places the cursor at the start, `-1` at the end. |
+
+### Special functions
+
+| Function | Description |
+|----------|-------------|
+| `enter_command_line_mode` | Enter command-line mode |
+| `focus_next` | Focus the next pane or widget |
+| `focus_previous` | Focus the previous pane or widget |
+| `move_up` | Move up in a list |
+| `move_down` | Move down in a list |
+| `page_up` | Page up |
+| `page_down` | Page down |
+| `next_link` | Select the next link in the current note |
+| `previous_link` | Select the previous link in the current note |
+| `open_link` | Open the currently selected link externally |
+| `activate` | Activate the selected item (e.g. open a note in the editor) |
+| `delete` | Delete the selected item |
+| `toggle_console` | Show or hide the console panel |
+| `toggle_metadata` | Show or hide note metadata |
+
+## Commands
+
+The following commands are available in command-line mode and shell mode.
+
+### `attach`
+
+```
+attach <note> <file>
+```
+
+Attaches the given file to the note.
+
+### `batch`
+
+```
+batch <file-path>
+```
+
+Runs the commands contained in a text file. One command per line.
+
+### `cat`
+
+```
+cat <note>
+```
+
+Displays the content of the given note.
+
+| Flag | Description |
+|------|-------------|
+| `-v`, `--verbose` | Display complete note information |
+
+### `config`
+
+```
+config [name] [value]
+```
+
+Gets or sets a configuration value. With no arguments, lists the current configuration. With only `[name]`, shows the value for that key.
+
+| Flag | Description |
+|------|-------------|
+| `-v`, `--verbose` | Also display unset and hidden config variables |
+| `--export` | Write all settings to stdout as JSON, including secure variables |
+| `--import` | Read JSON-formatted settings from stdin |
+| `--import-file <file>` | Read settings from a JSON file |
+
+<AccordionGroup>
+  <Accordion title="Configuration keys reference">
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `sync.target` | Enum | `0` | Sync target. `0` = None, `2` = File system, `3` = OneDrive, `5` = Nextcloud, `6` = WebDAV, `7` = Dropbox, `8` = S3 (Beta), `9` = Joplin Server (Beta), `10` = Joplin Cloud |
+| `sync.2.path` | string | — | Local directory path for filesystem sync (absolute path) |
+| `sync.5.path` | string | — | Nextcloud WebDAV URL |
+| `sync.5.username` | string | — | Nextcloud username |
+| `sync.5.password` | string | — | Nextcloud password |
+| `sync.6.path` | string | — | WebDAV URL |
+| `sync.6.username` | string | — | WebDAV username |
+| `sync.6.password` | string | — | WebDAV password |
+| `sync.8.path` | string | — | AWS S3 bucket |
+| `sync.8.url` | string | `https://s3.amazonaws.com/` | AWS S3 URL |
+| `sync.8.region` | string | — | AWS region |
+| `sync.8.username` | string | — | AWS access key |
+| `sync.8.password` | string | — | AWS secret key |
+| `sync.8.forcePathStyle` | bool | `false` | Force S3 path style |
+| `sync.9.path` | string | — | Joplin Server URL |
+| `sync.9.username` | string | — | Joplin Server email |
+| `sync.9.password` | string | — | Joplin Server password |
+| `sync.10.username` | string | — | Joplin Cloud email |
+| `sync.10.password` | string | — | Joplin Cloud password |
+| `sync.maxConcurrentConnections` | int | `5` | Max concurrent sync connections |
+| `sync.interval` | Enum | `300` | Sync interval in seconds. `0` = disabled, `300` = 5 min, `600` = 10 min, `1800` = 30 min, `3600` = 1 h, `43200` = 12 h, `86400` = 24 h |
+| `locale` | Enum | `en_GB` | Application language |
+| `dateFormat` | Enum | `DD/MM/YYYY` | Date display format |
+| `timeFormat` | Enum | `HH:mm` | Time display format |
+| `uncompletedTodosOnTop` | bool | `true` | Show uncompleted to-dos above completed ones |
+| `showCompletedTodos` | bool | `true` | Show completed to-dos in the list |
+| `notes.sortOrder.field` | Enum | `user_updated_time` | Sort notes by: `user_updated_time`, `user_created_time`, `title`, `order` |
+| `notes.sortOrder.reverse` | bool | `true` | Reverse note sort order |
+| `folders.sortOrder.field` | Enum | `title` | Sort notebooks by: `title`, `last_note_user_updated_time` |
+| `folders.sortOrder.reverse` | bool | `false` | Reverse notebook sort order |
+| `trackLocation` | bool | `true` | Save geo-location with notes |
+| `editor` | string | — | Text editor command used to open notes (auto-detected if empty) |
+| `net.customCertificates` | string | — | Comma-separated paths to custom TLS certificate files or directories |
+| `net.ignoreTlsErrors` | bool | `false` | Ignore TLS certificate errors |
+| `sync.wipeOutFailSafe` | bool | `true` | Fail-safe: do not wipe local data when the sync target is empty |
+| `revisionService.enabled` | bool | `true` | Enable note history |
+| `revisionService.ttlDays` | int | `90` | Number of days to keep note history |
+| `layout.folderList.factor` | int | `1` | Notebook list panel growth factor |
+| `layout.noteList.factor` | int | `1` | Note list panel growth factor |
+| `layout.note.factor` | int | `2` | Note area panel growth factor |
+
+  </Accordion>
+</AccordionGroup>
+
+### `cp`
+
+```
+cp <note> [notebook]
+```
+
+Duplicates the notes matching `<note>` into `[notebook]`. If no notebook is specified, the note is duplicated in the current notebook.
+
+### `done`
+
+```
+done <note>
+```
+
+Marks a to-do as done.
+
+### `e2ee`
+
+```
+e2ee <command> [path]
+```
+
+Manages end-to-end encryption. Available commands: `enable`, `disable`, `decrypt`, `status`, `decrypt-file`, `target-status`.
+
+| Flag | Description |
+|------|-------------|
+| `-p`, `--password <password>` | Use this password as the master password (not recommended for security reasons) |
+| `-v`, `--verbose` | More verbose output for `target-status` |
+| `-o`, `--output <directory>` | Output directory |
+| `--retry-failed-items` | For `decrypt`: retry items that previously failed to decrypt |
+
+### `edit`
+
+```
+edit <note>
+```
+
+Opens the note in your configured text editor.
+
+### `export`
+
+```
+export <path>
+```
+
+Exports Joplin data to the given path. By default exports the complete database including notebooks, notes, tags, and resources.
+
+| Flag | Description |
+|------|-------------|
+| `--format <format>` | Destination format: `jex` (Joplin Export File), `raw` (Joplin Export Directory), `md` (Markdown), `md_frontmatter` (Markdown + Front Matter) |
+| `--note <note>` | Export only the given note |
+| `--notebook <notebook>` | Export only the given notebook |
+
+### `geoloc`
+
+```
+geoloc <note>
+```
+
+Displays a geolocation URL for the note.
+
+### `help`
+
+```
+help [command]
+```
+
+Displays usage information. Use `help all` to list every available command.
+
+### `import`
+
+```
+import <path> [notebook]
+```
+
+Imports data into Joplin.
+
+| Flag | Description |
+|------|-------------|
+| `--format <format>` | Source format: `auto`, `jex`, `md`, `md_frontmatter`, `raw`, `enex` |
+| `-f`, `--force` | Do not ask for confirmation |
+| `--output-format <output-format>` | Output format: `md`, `html` |
+
+### `ls`
+
+```
+ls [note-pattern]
+```
+
+Displays the notes in the current notebook. Use `ls /` to list notebooks.
+
+| Flag | Description |
+|------|-------------|
+| `-n`, `--limit <num>` | Show only the first `<num>` notes |
+| `-s`, `--sort <field>` | Sort by field: `title`, `updated_time`, `created_time` |
+| `-r`, `--reverse` | Reverse the sort order |
+| `-t`, `--type <type>` | Filter by type: `n` (notes), `t` (to-dos), `nt` (notes and to-dos) |
+| `-f`, `--format <format>` | Output format: `text` or `json` |
+| `-l`, `--long` | Long format: ID, NOTE_COUNT, DATE, TODO_CHECKED, TITLE |
+
+### `mkbook`
+
+```
+mkbook <new-notebook>
+```
+
+Creates a new notebook.
+
+### `mknote`
+
+```
+mknote <new-note>
+```
+
+Creates a new note.
+
+### `mktodo`
+
+```
+mktodo <new-todo>
+```
+
+Creates a new to-do.
+
+### `mv`
+
+```
+mv <note> [notebook]
+```
+
+Moves the notes matching `<note>` to `[notebook]`.
+
+### `ren`
+
+```
+ren <item> <name>
+```
+
+Renames the given note or notebook to `<name>`.
+
+### `rmbook`
+
+```
+rmbook <notebook>
+```
+
+Deletes the given notebook.
+
+| Flag | Description |
+|------|-------------|
+| `-f`, `--force` | Delete without asking for confirmation |
+
+### `rmnote`
+
+```
+rmnote <note-pattern>
+```
+
+Deletes the notes matching `<note-pattern>`.
+
+| Flag | Description |
+|------|-------------|
+| `-f`, `--force` | Delete without asking for confirmation |
+
+### `server`
+
+```
+server <command>
+```
+
+Starts, stops, or checks the status of the local API server. Commands: `start`, `stop`, `status`. Set the port with the `api.port` config variable.
+
+<Warning>This is an experimental feature. It is recommended to run the server from its own separate profile so that no two CLI instances access the same profile simultaneously. Use `--profile` to specify the profile path.</Warning>
+
+### `set`
+
+```
+set <note> <name> [value]
+```
+
+Sets a property on the given note. Available properties:
+
+`parent_id`, `title`, `body`, `created_time`, `updated_time`, `is_conflict`, `latitude`, `longitude`, `altitude`, `author`, `source_url`, `is_todo`, `todo_due`, `todo_completed`, `source`, `source_application`, `application_data`, `order`, `user_created_time`, `user_updated_time`, `encryption_cipher_text`, `encryption_applied`, `markup_language`, `is_shared`, `share_id`, `conflict_original_id`, `master_key_id`
+
+### `status`
+
+```
+status
+```
+
+Displays a summary of notes and notebooks.
+
+### `sync`
+
+```
+sync
+```
+
+Synchronises with the configured remote storage.
+
+| Flag | Description |
+|------|-------------|
+| `--target <target>` | Sync to a specific target (overrides `sync.target` config value) |
+| `--upgrade` | Upgrade the sync target to the latest version |
+| `--use-lock <value>` | Disable local locks that prevent simultaneous sync from multiple clients (default: `1`) |
+
+### `tag`
+
+```
+tag <tag-command> [tag] [note]
+```
+
+Manages tags. `<tag-command>` can be:
+
+- `add` — assign `[tag]` to `[note]`
+- `remove` — remove `[tag]` from `[note]`
+- `list` — list notes associated with `[tag]`
+- `notetags` — list tags associated with `[note]`
+
+Use `tag list` to list all tags.
+
+| Flag | Description |
+|------|-------------|
+| `-l`, `--long` | Long format: ID, NOTE_COUNT, DATE, TODO_CHECKED, TITLE |
+
+### `todo`
+
+```
+todo <todo-command> <note-pattern>
+```
+
+Manages to-do state. `<todo-command>` can be:
+
+- `toggle` — toggle the to-do between completed and uncompleted (converts a regular note to a to-do if needed)
+- `clear` — convert the to-do back to a regular note
+
+### `undone`
+
+```
+undone <note>
+```
+
+Marks a to-do as not completed.
+
+### `use`
+
+```
+use <notebook>
+```
+
+Switches to the given notebook. All subsequent operations apply within this notebook.
+
+### `version`
+
+```
+version
+```
+
+Displays version information.

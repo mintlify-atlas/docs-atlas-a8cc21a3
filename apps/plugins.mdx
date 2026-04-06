@@ -1,0 +1,100 @@
+---
+title: "Plugins"
+description: "Extend Joplin with community-built plugins. Install from the built-in repository or a local .jpl file, then manage, update, and remove plugins from the Configuration screen."
+keywords: ["plugins", "extensions", "jpl", "plugin repository", "install plugin"]
+---
+
+The desktop and mobile apps support plugins that extend Joplin beyond its standard functionality. Plugins follow the [Joplin Plugin API](https://joplinapp.org/api/references/plugin_api/classes/joplin.html) and are installed and configured from the **Plugins** page of the Configuration screen.
+
+## Plugin repository
+
+Plugins are hosted in the [Joplin plugins repository](https://github.com/joplin/plugins). Joplin searches and installs plugins directly from this location. Manual installation from a local `.jpl` file is also supported.
+
+For plugin announcements, beta releases, and community discussion, visit the [Joplin Discourse plugins category](https://discourse.joplinapp.org/c/plugins/18).
+
+## Installing a plugin
+
+<Tabs>
+  <Tab title="From the repository">
+    <Steps>
+      <Step title="Open the Plugins page">
+        Open the Configuration screen and go to the **Plugins** page.
+      </Step>
+      <Step title="Search for a plugin">
+        Type a name in the search box. Pressing <kbd>Space</kbd> lists all available plugins. On desktop, you can also press the **Plugin tools** gear button and select **Browse all plugins**.
+
+        <Tip>Plugins marked with a gold crown icon are recommended by the Joplin team — they have been vetted for quality and reliability.</Tip>
+      </Step>
+      <Step title="Install">
+        Press the **Install** button next to the plugin. Joplin will prompt you to restart to finish the installation.
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="From a .jpl file (desktop)">
+    <Steps>
+      <Step title="Download the plugin">
+        Download the plugin as a `.jpl` file from the author's page or the Joplin Discourse forum.
+      </Step>
+      <Step title="Install the file">
+        In the Configuration screen, press the **Plugin tools** gear button and select **Install from file**, then select the downloaded `.jpl` file.
+
+        Alternatively, copy the `.jpl` directly to your profile's `plugins` directory:
+
+        ```text
+        ~/.config/joplin-desktop/plugins
+        ```
+
+        The exact path for your device is shown at the top of the **Options** page in the Configuration screen.
+      </Step>
+      <Step title="Restart Joplin">
+        Restart the application. The plugin loads automatically on startup.
+
+        <Note>Make sure Joplin fully exits rather than minimising to the system tray or notification area.</Note>
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="From a .jpl file (Android)">
+    On Android, the **Install from file** button is available under **Advanced settings** in the **Plugins** tab of the Configuration screen.
+
+    <Note>To comply with App Store guidelines, the iOS app only allows installing plugins that are marked as recommended by the Joplin team.</Note>
+  </Tab>
+</Tabs>
+
+## Managing plugins
+
+From the Plugins page in the Configuration screen, you can toggle each plugin on or off using its toggle control. After changing the state of a plugin, restart Joplin for the change to take effect.
+
+<Note>Make sure Joplin fully exits rather than minimising to the system tray or notification area when restarting.</Note>
+
+Each plugin integrates directly into the application and may have its own configuration options and activation methods. Read the plugin author's documentation to understand how to configure and use each plugin.
+
+## Updating plugins
+
+When an update is available for an installed plugin, an orange **Update** button appears on the Plugins page. Press it to update the plugin, then restart Joplin when prompted.
+
+## Uninstalling plugins
+
+To remove a plugin, press the **Delete** button on the Plugins page. Restart Joplin to complete the removal.
+
+Alternatively, delete the corresponding `.jpl` file from the plugin directory (see [Installing a plugin](#installing-a-plugin) for the path). The change takes effect after restarting the application.
+
+## Developing your own plugin
+
+Joplin provides a full plugin API and developer documentation. See the [API overview](/api/overview) for getting started guides and API references.
+
+For community discussion and help with plugin development, visit the [Joplin Discourse plugins development category](https://discourse.joplinapp.org/c/development/plugins/19).
+
+<CardGroup cols={2}>
+  <Card title="Plugin API overview" icon="code" href="/api/overview">
+    Get started building your own Joplin plugin.
+  </Card>
+  <Card title="Plugin theming" icon="palette" href="/api/plugin-theming">
+    Style your plugin's UI to match Joplin's current theme.
+  </Card>
+</CardGroup>
+
+## Video tutorial
+
+Watch this short video to see how to find and install plugins:
+
+[![How to find and install Joplin plugins](https://img.youtube.com/vi/wutW3IXGTNI/hqdefault.jpg)](https://www.youtube.com/watch?v=wutW3IXGTNI)

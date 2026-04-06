@@ -1,0 +1,74 @@
+---
+title: "Attachments"
+description: "Attach any file to a note, view images and PDFs inline, and control how attachments are downloaded during sync."
+---
+
+Any kind of file can be attached to a note. In Markdown, attachments are represented as links using an internal resource ID. Clicking the link opens the file in your system's default application for that file type. Audio, video, and PDF files are displayed inline within the note itself — you can play or view them without leaving Joplin.
+
+## Attaching files
+
+<Tabs>
+  <Tab title="Desktop">
+    There are three ways to attach a file in the desktop app:
+
+    - Click the **Attach file** icon in the editor toolbar.
+    - Drag and drop a file from your file manager onto the note editor.
+    - Paste an image directly with **Ctrl+V** (or **Cmd+V** on macOS).
+
+    <Tip>
+      To insert a link to a local file on your computer instead of embedding a copy of the file, hold **Alt** while dragging and dropping. This creates a link to the original file path rather than importing the file into Joplin.
+    </Tip>
+  </Tab>
+  <Tab title="Mobile">
+    Tap the attachment icon in the note toolbar to open a file picker and select a file from your device.
+  </Tab>
+</Tabs>
+
+<Warning>
+Resources larger than 10 MB are not currently supported on mobile. Attaching such files can cause the app to crash during synchronisation. Avoid attaching large files if you use the mobile app.
+</Warning>
+
+## Opening attachments
+
+How you open an attachment depends on which editor view you are using:
+
+| View | How to open |
+|---|---|
+| Note viewer | Click the attachment link |
+| Rich text editor | **Ctrl+click** (or **Cmd+click**) the attachment link |
+
+The attachment opens in the default application for that file type, as configured in your operating system settings.
+
+### Unknown file type warning
+
+Joplin warns you before opening attachments with file types that could be unsafe to execute. Some file types are treated as programs by the operating system, which means opening a malicious attachment could compromise your computer.
+
+<AccordionGroup>
+  <Accordion title="When is it safe to open an unknown file type?">
+    If you created the file, attached it to Joplin yourself, and have not shared the note with anyone else, it is safe to open. In all other cases — especially if the note came from an external source — avoid opening attachments with unfamiliar file types.
+  </Accordion>
+  <Accordion title="Examples of potentially unsafe file types">
+    This depends on your operating system. On most Windows systems, `.COM`, `.EXE`, and `.BAT` files are unsafe because they are executable programs.
+  </Accordion>
+  <Accordion title="Suppressing the warning for a specific file type">
+    If you regularly work with a particular file type and are certain it is safe, check **Always open this file type without asking** in the warning dialog. Joplin will no longer prompt you for that file type. For example, if you frequently attach `.doc` files that you know are safe, you can suppress the warning for `.doc`.
+  </Accordion>
+</AccordionGroup>
+
+## Downloading attachments during sync
+
+By default, Joplin downloads all attachments during synchronisation so they are available offline. You can change this behaviour in **Settings > Attachment download behaviour**.
+
+| Option | Behaviour |
+|---|---|
+| **Always** (default) | All attachments are downloaded automatically during sync. Data is always available offline. |
+| **Manual** | Attachments are only downloaded when you click them. |
+| **Auto** | Attachments are downloaded automatically when you open a note that contains them. |
+
+<Tip>
+The **Manual** and **Auto** options can significantly reduce disk usage and network bandwidth, which is especially useful on mobile devices.
+</Tip>
+
+## Unattached resources
+
+Resources that are no longer linked to any note are automatically cleaned up by Joplin. If you delete the link to an attachment from a note, the underlying resource file will eventually be removed. You can review note revision history via **Note > Note History** in the menu.

@@ -1,0 +1,321 @@
+---
+title: 'Coding style'
+description: "Joplin's coding conventions for TypeScript, React, database usage, and tests."
+---
+
+Coding style is enforced by a pre-commit ESLint hook installed when you run `yarn install`. If the hook was not installed, run `yarn install` from the repository root to set it up.
+
+To run the linter manually:
+
+```sh
+yarn linter ./
+```
+
+To interactively disable pre-existing errors without breaking the existing codebase:
+
+```sh
+yarn linter-interactive ./
+```
+
+When using the interactive tool to suppress an existing error, add the comment `Old code before rule was applied` so the auto-disabled lines are easy to find later.
+
+## TypeScript
+
+All new code must be written in TypeScript. The codebase was originally JavaScript and is being migrated incrementally; compiled `.js` files are generated next to each `.ts` source file.
+
+### Converting existing JavaScript files
+
+Even when **modifying** a `.js` file, convert it to TypeScript first. For very large legacy files, ask maintainers before converting — some have poorly-defined types that make conversion non-trivial.
+
+### Prefer `import` over `require`
+
+Use ES module `import` syntax so TypeScript can provide type-checking. Fall back to `require()` only for packages that lack TypeScript types.
+
+### Define types separately
+
+Avoid inline type annotations on declarations. Defining types separately improves readability and allows reuse.
+
+<CodeGroup>
+
+```ts bad.ts
+const config: { [key: string]: Knex.Config } = {
+	// ...
+}
+```
+
+```ts good.ts
+type Config = Record<string, Knex.Config>;
+
+const config: Config = {
+	// ...
+}
+```
+
+</CodeGroup>
+
+### Let TypeScript infer types where possible
+
+Don't annotate a type that the compiler can already infer. The `no-inferable-types` ESLint rule enforces this for simple types.
+
+<CodeGroup>
+
+```ts bad.ts
+const getSomething(): string => {
+	return 'something';
+}
+
+const timestamp: number = Date.now();
+```
+
+```ts good.ts
+const getSomething() => {
+	return 'something';
+}
+
+const timestamp = Date.now();
+```
+
+</CodeGroup>
+
+### Ignore generated files
+
+When you create a new `.ts` file, add the corresponding compiled `.js` file to `.eslintignore` and `.gitignore`. Run the following from the project root to update them automatically:
+
+```sh
+yarn updateIgnored
+```
+
+## File naming and imports
+
+| Convention | When to use |
+|---|---|
+| `camelCase.ts` | Files that export multiple things |
+| `PascalCase.ts` | Files whose sole export is a class |
+| `types.ts` / `fooTypes.ts` | Shared type definitions |
+
+Use the same casing for the file name, the exported member, and the import:
+
+<CodeGroup>
+
+```ts bad.ts
+// ProcessDATA.ts
+export default const processData = () => { ... };
+
+// foo.ts
+import doDataProcessing from './ProcessDATA';
+doDataProcessing();
+```
+
+```ts good.ts
+// processData.ts
+export default const processData = () => { ... };
+
+// foo.ts
+import processData from './processData';
+processData();
+```
+
+</CodeGroup>
+
+### Only import what you need
+
+Import named exports rather than entire modules to enable potential tree-shaking:
+
+<CodeGroup>
+
+```ts bad.ts
+import * as fs from 'fs-extra';
+fs.writeFile('example.md', 'example');
+```
+
+```ts good.ts
+import { writeFile } from 'fs-extra';
+writeFile('example.md', 'example');
+```
+
+</CodeGroup>
+
+## Variables and functions
+
+- Use `camelCase` for constants in new code (not `UPPER_SNAKE_CASE`).
+- Declare variables immediately before their first use, not at the top of a scope.
+- Prefer `const` over `let` where the value is not reassigned.
+- Prefer arrow functions (`() => {}`) over `function` declarations to avoid `this` binding issues and to make refactoring to React Hooks easier.
+
+<CodeGroup>
+
+```ts bad.ts
+function foo() {
+	...
+}
+```
+
+```ts good.ts
+const foo = () => {
+	...
+};
+```
+
+</CodeGroup>
+
+### Avoid default and optional parameters
+
+Make all parameters required where possible. This lets the compiler catch missing arguments during refactoring.
+
+## Escaping user data
+
+XSS is a frequent source of vulnerabilities. Always escape user-supplied content at the point where it is inserted into a target format.
+
+<AccordionGroup>
+  <Accordion title="Inserting into a JavaScript string">
+    Use `JSON.stringify()`:
+
+    ```ts
+    const jsCode = `const data = ${JSON.stringify(dynamicallyGeneratedData)};`;
+    ```
+  </Accordion>
+  <Accordion title="Inserting into an HTML string">
+    Use `htmlentities` from `@joplin/utils/html`:
+
+    ```ts
+    import { htmlentities } from '@joplin/utils/html';
+    const html = `<a href="${htmlentities(attributes)}">${htmlentities(content)}</a>`;
+    ```
+  </Accordion>
+  <Accordion title="Inserting into a URL">
+    For query parameters, use `encodeURIComponent`. For a full URL, use `encodeURI`:
+
+    ```ts
+    const url = `https://example.com/?page=${encodeURIComponent(page)}`;
+    ```
+  </Accordion>
+  <Accordion title="Inserting into Markdown">
+    Use the escape helpers in `lib/markdownUtils`:
+
+    ```ts
+    const markdown = `[${markdownUtils.escapeTitleText(linkTitle)}](${markdownUtils.escapeLinkUrl(linkUrl)})`;
+    ```
+
+    Available functions: `escapeTableCell()`, `escapeInlineCode()`, `escapeTitleText()`, `escapeLinkUrl()`.
+  </Accordion>
+</AccordionGroup>
+
+### Escape as late as possible
+
+Keep data in its raw form inside the application. Decode input at the boundary where it enters, and encode output only when it leaves:
+
+<CodeGroup>
+
+```ts bad.ts
+let parameters = `id=${encodeURIComponent(id)}&time=${encodeURIComponent(Date.now())}`;
+parameters += `&other=${encodeURIComponent(otherParam)}`;
+const url = `https://example.com?${parameters}`;
+```
+
+```ts good.ts
+const parameters = {
+	id: id,
+	timestamp: Date.now(),
+};
+parameters.other = otherParam;
+const url = `https://example.com?${new URLSearchParams(parameters).toString()}`;
+```
+
+</CodeGroup>
+
+### Make wrong code look wrong
+
+Add a suffix to variables that contain escaped data to make unsafe insertions immediately visible:
+
+<CodeGroup>
+
+```ts bad.ts
+const userContent = queryParameters.page;
+const html = `<div>${userContent}</div>`; // looks wrong — and is wrong
+```
+
+```ts good.ts
+const userContentHtml = htmlentities(queryParameters.page);
+const html = `<div>${userContentHtml}</div>`; // suffix confirms it's safe
+```
+
+</CodeGroup>
+
+## React
+
+- Write new components as function components with [React Hooks](https://reactjs.org/docs/hooks-intro.html), not class components.
+- Extract long component logic into [custom hooks](https://reactjs.org/docs/hooks-custom.html).
+
+<CodeGroup>
+
+```tsx bad.tsx
+class Example extends React.Component {
+	public constructor(props: { text: string }) {
+		super(props);
+	}
+	public render() {
+		return <div>${text}</div>;
+	}
+}
+```
+
+```tsx good.tsx
+const Example = (props: { text: string }) => {
+	return <div>${text}</div>;
+};
+```
+
+</CodeGroup>
+
+## Database
+
+- Use `snake_case` for table names and column names.
+- All columns must be `NOT NULL`, with a default value only where it makes sense (timestamps, system-set fields).
+- Represent enum-like values as integers with a corresponding TypeScript `enum` — do not use database-native enum types, as they complicate migrations.
+- Use `tinyint(1)` instead of `bool` — SQLite and MySQL do not have a native boolean type.
+
+## API endpoints
+
+Use `snake_case` for endpoint paths and query parameter names.
+
+## Tests
+
+Joplin uses [Jest](https://jestjs.io/). Each test file should have exactly one `describe()` block.
+
+### Test real behaviour, not implementation details
+
+Avoid mock objects and spies whenever possible. Test against real input and real output; for example, write an actual file instead of mocking `fs.writeFile`.
+
+<CodeGroup>
+
+```ts bad.ts
+jest.spyOn(fs, 'readFile').mockImplementation(() => '{ "version": 1 }');
+const data = await service.readConfig('/path/to/file.json');
+expect(data.version).toBe(1);
+```
+
+```ts good.ts
+await fs.writeFile('/path/to/file.json', '{ "version": 1 }');
+const data = await service.readConfig('/path/to/file.json');
+expect(data.version).toBe(1);
+```
+
+</CodeGroup>
+
+### Test utilities
+
+Shared test helpers are available under `@joplin/lib/testing/test-utils`. Use these when your tests require database or synchroniser support. See [`Note.test.ts`](https://github.com/laurent22/joplin/blob/dev/packages/lib/models/Note.test.ts) for an example setup.
+
+To test React Hooks, use [`@testing-library/react-hooks`](https://github.com/testing-library/react-hooks-testing-library).
+
+### Avoid redundant test cases
+
+Focus on essential behaviour and edge cases. Use `test.each` or shared helpers rather than repeating similar test blocks with different inputs.
+
+## No whitespace-only changes
+
+Do not submit pull requests whose only changes are whitespace (added blank lines, reformatted existing code, etc.). These changes make diffs harder to read and review.
+
+## Comments
+
+Write comments using `//` only. Do not use JSDoc syntax (`/** */`).

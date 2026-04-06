@@ -1,0 +1,173 @@
+---
+title: 'Architecture'
+description: "An overview of Joplin's monorepo structure, key packages, and how they interact."
+---
+
+Joplin is a monorepo. All packages live under `packages/` and are managed with [Yarn workspaces](https://yarnpkg.com/features/workspaces) and [Lerna](https://lerna.js.org/). Every package is published under the `@joplin/` npm scope.
+
+## Monorepo layout
+
+```
+joplin/
+├── packages/
+│   ├── app-cli/           # Terminal (CLI) application
+│   ├── app-clipper/       # Browser web clipper extension
+│   ├── app-desktop/       # Electron desktop application
+│   ├── app-mobile/        # React Native mobile app (Android, iOS, Web)
+│   ├── editor/            # In-app CodeMirror-based note editor
+│   ├── lib/               # Core library shared by all apps
+│   ├── renderer/          # Markdown and HTML renderer
+│   ├── server/            # Joplin Server (self-hosted sync backend)
+│   ├── tools/             # Build, release, and maintenance scripts
+│   ├── utils/             # Shared utility functions
+│   ├── fork-*/            # Vendored forks of upstream packages
+│   └── ...                # Other specialised packages
+├── lerna.json
+└── package.json           # Root workspace config; requires Node >=18, Yarn 4.9.2
+```
+
+Several `fork-*` packages (e.g. `fork-htmlparser2`, `fork-sax`, `fork-uslug`) are local forks of upstream libraries that carry Joplin-specific patches.
+
+## Key packages
+
+<CardGroup cols={2}>
+  <Card title="lib" icon="database">
+    The core library. Contains all business logic shared across every client application: synchronisation, end-to-end encryption, import/export, database access, models, settings, and services.
+  </Card>
+  <Card title="renderer" icon="code">
+    The Joplin Markdown and HTML renderer. Handles converting note content to display output, independently of the host application.
+  </Card>
+  <Card title="app-desktop" icon="monitor">
+    The Electron desktop application. Uses `lib` and `renderer` to deliver the full Joplin experience on Windows, macOS, and Linux.
+  </Card>
+  <Card title="app-mobile" icon="smartphone">
+    The React Native mobile application, targeting Android, iOS, and a web browser target. Shares business logic with other clients through `lib`.
+  </Card>
+  <Card title="app-cli" icon="terminal">
+    The terminal application. A full-featured Joplin client for the command line, built on top of `lib`.
+  </Card>
+  <Card title="server" icon="server">
+    The Joplin Server, a self-hosted backend that clients can sync to. Provides the same sync API surface as Joplin Cloud.
+  </Card>
+</CardGroup>
+
+## The `lib` package
+
+`lib` is the foundation of Joplin. Every application (desktop, mobile, CLI) delegates all core operations to this package, which means a bug fix or feature implemented in `lib` immediately benefits all clients.
+
+The package is structured around several major concerns:
+
+<AccordionGroup>
+  <Accordion title="Database layer">
+    `lib` uses SQLite via `better-sqlite3` on Node.js environments and a compatible driver on React Native. The database schema is managed through versioned migration scripts in `lib/migrations/`. Column naming follows `snake_case`, all columns are `NOT NULL`, and enum-like values are stored as integers paired with TypeScript `enum` definitions.
+
+    Key files: `database.ts`, `JoplinDatabase.ts`, `migrations/`
+  </Accordion>
+  <Accordion title="Models">
+    Active-record-style model classes in `lib/models/` represent the core entities — notes, notebooks (folders), tags, resources (attachments), and revisions. Models expose typed query methods and emit change events through `eventManager.ts`.
+
+    Key files: `models/Note.ts`, `models/Folder.ts`, `models/BaseModel.ts`
+  </Accordion>
+  <Accordion title="Synchronisation">
+    The synchroniser (`Synchronizer.ts`) is a delta-sync engine that reconciles local and remote state. It is target-agnostic: the same logic drives sync against Joplin Cloud, Joplin Server, Dropbox, OneDrive, WebDAV, Nextcloud, and the local filesystem. Each target implements the `BaseSyncTarget` interface and provides a `file-api-driver-*.ts` adapter.
+
+    Key files: `Synchronizer.ts`, `BaseSyncTarget.ts`, `file-api.ts`, `file-api-driver-*.ts`
+  </Accordion>
+  <Accordion title="End-to-end encryption (E2EE)">
+    Encryption is handled by the service layer under `lib/services/e2ee/`. When E2EE is enabled, note and resource content is encrypted before it is written to the sync target, and decrypted locally after download. The `DecryptionWorker` handles background decryption.
+
+    Key files: `services/e2ee/`, `services/DecryptionWorker.ts`
+  </Accordion>
+  <Accordion title="Services">
+    The `lib/services/` directory contains a large collection of services covering: plugin management, revision history, resource fetching, search, keychain, OCR, share, profile configuration, and more. Services are designed to be instantiated once and accessed through the shared `registry.ts`.
+  </Accordion>
+  <Accordion title="Import and export">
+    `lib` implements importers and exporters for JEX (Joplin Export), ENEX (Evernote), Markdown files, and HTML. These are available to all client applications.
+
+    Key files: `import-enex.ts`, `import-enex-md-gen.ts`, `services/interop/`
+  </Accordion>
+</AccordionGroup>
+
+## The `renderer` package
+
+`renderer` is responsible for converting note content (Markdown or HTML) into the rendered output displayed in notes. It is decoupled from any specific application so the same rendering logic can run in the desktop app, the mobile WebView, and the CLI.
+
+The renderer handles Markdown extensions used by Joplin (math, mermaid diagrams, checkboxes, tables, etc.) and sanitises HTML output to prevent XSS.
+
+## The `editor` package
+
+`editor` provides the in-app CodeMirror-based note editor. It is packaged separately so it can be embedded in both the desktop Electron app and the mobile app's WebView with a common API surface.
+
+## How packages communicate
+
+Because all business logic lives in `lib`, client packages (`app-desktop`, `app-mobile`, `app-cli`) communicate with it directly through TypeScript imports. There is no inter-process API between the library and its consumers — each application bundles `lib` and runs it in-process.
+
+The `renderer` and `editor` packages run inside a WebView in the desktop and mobile applications. They communicate with the host application through a message-passing bridge (`PostMessageService`).
+
+```
+┌─────────────────────────────────────────────────────┐
+│                   app-desktop / app-cli              │
+│  ┌──────────────────────────────────────────────┐   │
+│  │                     lib                      │   │
+│  │  models · Synchronizer · services · database │   │
+│  └──────────────────────────────────────────────┘   │
+│                                                      │
+│  ┌──────────────┐      ┌───────────────────────┐    │
+│  │   renderer   │      │        editor          │   │
+│  │  (WebView)   │      │      (WebView)          │   │
+│  └──────────────┘      └───────────────────────┘    │
+└─────────────────────────────────────────────────────┘
+```
+
+## Synchronisation architecture
+
+Joplin's sync model is **item-based**. Every note, notebook, tag, resource, and setting is an independent item with a unique ID. The synchroniser compares item timestamps and checksums between the local database and the remote sync target to determine what needs to be uploaded or downloaded.
+
+### Sync targets
+
+Each sync target is an implementation of `BaseSyncTarget` paired with a `file-api-driver`. The driver abstracts the remote storage API — whether that is a REST API (Joplin Server, Joplin Cloud, Dropbox, OneDrive) or a filesystem (WebDAV, local folder).
+
+Available targets:
+
+- Joplin Cloud (`SyncTargetJoplinCloud.ts`)
+- Joplin Server (`SyncTargetJoplinServer.ts`)
+- Dropbox (`SyncTargetDropbox.js`)
+- OneDrive (`SyncTargetOneDrive.ts`)
+- WebDAV / Nextcloud (`SyncTargetWebDAV.js`)
+- Amazon S3 (`SyncTargetAmazonS3.js`)
+- Local filesystem (`SyncTargetFilesystem.ts`)
+
+### Conflict handling
+
+When the same item has been modified both locally and on the remote since the last sync, the conflict is surfaced to the user. Joplin keeps both versions: the remote wins for the canonical copy, and a conflict note is created so no data is lost.
+
+### Encryption at rest
+
+When E2EE is enabled, item content is encrypted using a master key before upload and stored as ciphertext on the sync target. Decryption happens locally after download. The remote server never has access to plaintext note content.
+
+## Adding a new package
+
+When adding a package to `packages/`, follow these steps to ensure it integrates with the existing tooling:
+
+<Steps>
+  <Step title="Configure package.json">
+    - Set `name` to `@joplin/PACKAGE_NAME`
+    - Set `version` to the current major/minor Joplin version
+    - Add `"publishConfig": { "access": "public" }`
+    - Set `license` to `AGPL-3.0-or-later`
+    - Set `repository` to `https://github.com/laurent22/joplin/tree/dev/packages/PACKAGE_NAME`
+  </Step>
+  <Step title="Register for version bumps">
+    Add a call to `updatePackageVersion` in `packages/tools/setupNewRelease.ts` so the version number is updated automatically on each release.
+  </Step>
+  <Step title="Update npm package lint exceptions">
+    Add the package name to `.npmpackagejsonlintrc.json` to allow Lerna's `^x.y.z` version range for the new package (pinned versions are used for all other packages).
+  </Step>
+  <Step title="Register with the mobile app (if needed)">
+    If the package will be consumed by `app-mobile`, add it to the `localPackages` list in `packages/app-mobile/metro.config.js`:
+
+    ```javascript
+    '@joplin/PACKAGE_NAME': path.resolve(__dirname, '../PACKAGE_NAME/'),
+    ```
+  </Step>
+</Steps>

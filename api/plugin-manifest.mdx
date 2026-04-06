@@ -1,0 +1,190 @@
+---
+title: "Plugin manifest"
+description: "Reference for all fields in a Joplin plugin's manifest.json file, which describes the plugin's identity, compatibility, and metadata."
+---
+
+Every Joplin plugin includes a `manifest.json` file at `src/manifest.json`. This file describes the plugin to Joplin and to the plugin repository. If you used the [Yeoman generator](/api/get-started) to scaffold your plugin, the manifest is generated automatically from the answers you provided.
+
+You can edit the manifest at any time, but note that changing the `id` field after a plugin has been published will cause existing users to lose their installed version and re-download it.
+
+## Example
+
+```json
+{
+  "manifest_version": 1,
+  "name": "Joplin Simple Plugin",
+  "description": "To test loading and running a plugin",
+  "version": "1.0.0",
+  "author": "John Smith",
+  "app_min_version": "1.4",
+  "app_min_version_mobile": "3.0.3",
+  "platforms": ["mobile", "desktop"],
+  "homepage_url": "https://joplinapp.org",
+  "screenshots": [
+    {
+      "src": "images/screenshot.png",
+      "label": "An example of the plugin being used"
+    },
+    {
+      "src": "https://example.com/images/screenshot.png",
+      "label": "The plugin loading screen"
+    }
+  ],
+  "icons": {
+    "16": "images/icon16.png",
+    "32": "images/icon32.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  },
+  "promo_tile": {
+    "src": "images/promo_tile.png",
+    "label": "A logo of a plugin on a clear background"
+  }
+}
+```
+
+## Required fields
+
+<ParamField path="manifest_version" type="number" required>
+  The manifest format version. This must always be set to `1`.
+</ParamField>
+
+<ParamField path="name" type="string" required>
+  The display name of the plugin. This is a user-facing string shown in the Joplin UI and on the plugins website.
+</ParamField>
+
+<ParamField path="version" type="string" required>
+  The plugin version number, following semver notation — for example, `"1.0.0"`.
+</ParamField>
+
+<ParamField path="app_min_version" type="string" required>
+  The minimum version of Joplin that this plugin is compatible with. In general, set this to the version of Joplin you are using to develop the plugin — for example, `"3.6"`.
+</ParamField>
+
+## Optional fields
+
+<ParamField path="id" type="string">
+  A globally unique identifier for the plugin, such as `"com.example.MyPlugin"` or a UUID. The generator prompts you for this value and sets it automatically. Changing it after publication will break updates for existing users.
+</ParamField>
+
+<ParamField path="description" type="string">
+  A detailed description of what the plugin does. Displayed on the plugins website and in Joplin's plugin settings.
+</ParamField>
+
+<ParamField path="author" type="string">
+  The name of the plugin author.
+</ParamField>
+
+<ParamField path="app_min_version_mobile" type="string">
+  The minimum version of Joplin on mobile platforms, if different from `app_min_version`.
+</ParamField>
+
+<ParamField path="platforms" type="string[]">
+  The list of platforms the plugin supports. Valid values are `"desktop"` and `"mobile"`. If omitted, most plugins default to `["desktop"]`.
+
+  ```json
+  "platforms": ["desktop", "mobile"]
+  ```
+</ParamField>
+
+<ParamField path="keywords" type="string[]">
+  Keywords associated with the plugin. These are used for search on the Joplin plugins website.
+
+  ```json
+  "keywords": ["editor", "word-count"]
+  ```
+</ParamField>
+
+<ParamField path="categories" type="string[]">
+  One or more categories that describe the plugin's functionality. Used for filtering on the plugins website.
+
+  ```json
+  "categories": ["editor", "productivity"]
+  ```
+
+  Valid categories are:
+
+  | Category | Description |
+  |---|---|
+  | `appearance` | Deals with the appearance of app elements — line numbers, layout, etc. |
+  | `developer tools` | Built for developers. |
+  | `editor` | Enhances the note editor. |
+  | `files` | Deals with files — import, export, backup, etc. |
+  | `integrations` | Integrates third-party services or apps. |
+  | `personal knowledge management` | Manages and organises notes. |
+  | `productivity` | Makes Joplin more productive to use. |
+  | `search` | Enhances search inside the app. |
+  | `tags` | Deals with note tags. |
+  | `themes` | Changes the app theme. |
+  | `viewer` | Enhances the rendering of a note. |
+</ParamField>
+
+<ParamField path="homepage_url" type="string">
+  The homepage URL for the plugin. This can also be a link to a GitHub repository.
+</ParamField>
+
+<ParamField path="repository_url" type="string">
+  The URL of the repository where the plugin source code is hosted.
+</ParamField>
+
+<ParamField path="screenshots" type="Image[]">
+  A list of screenshots used for the plugin's listing on the Joplin plugins website. Each entry has a `src` and a `label`.
+
+  ```json
+  "screenshots": [
+    {
+      "src": "images/screenshot.png",
+      "label": "An example of the plugin being used"
+    }
+  ]
+  ```
+
+  - `src` — a path relative to the repository root, or a full URL. If a relative path is used, `repository_url` or `homepage_url` must point to a GitHub repository for the image to appear on the plugins website.
+  - `label` — a text description used by screen readers or shown when the image cannot be loaded.
+</ParamField>
+
+<ParamField path="icons" type="object">
+  Icons displayed in the Joplin UI and on the plugins website. Only PNG files are accepted. All paths are relative to the repository root. If no icons are supplied, a default plugin icon is used.
+
+  Supply at least the `48` px icon, which is used on most plugin pages. You may supply any combination of sizes and Joplin will choose the most appropriate one for each context.
+
+  ```json
+  "icons": {
+    "16": "images/icon16.png",
+    "32": "images/icon32.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  }
+  ```
+
+  | Key | Description |
+  |---|---|
+  | `16` | Path to a 16×16 px PNG icon. |
+  | `32` | Path to a 32×32 px PNG icon. |
+  | `48` | Path to a 48×48 px PNG icon. |
+  | `128` | Path to a 128×128 px PNG icon. |
+</ParamField>
+
+<ParamField path="promo_tile" type="Image">
+  An optional promotional image displayed on the Joplin plugins website main page. A good promo tile shows your plugin's icon or logo alongside the plugin name.
+
+  The image must be **440 × 280 pixels**, in JPEG or PNG format (no alpha channel). If no promo tile is provided, the plugin icon is shown instead.
+
+  ```json
+  "promo_tile": {
+    "src": "images/promo_tile.png",
+    "label": "A logo of a plugin on a clear background"
+  }
+  ```
+
+  - `src` — a path relative to the repository root, or a full URL.
+  - `label` — a text description used by screen readers or shown when the image cannot be loaded.
+</ParamField>
+
+## Updating the version number
+
+Run the following command to bump the patch segment of the version number (for example, `1.0.3` becomes `1.0.4`). This keeps `package.json` and `manifest.json` in sync:
+
+```bash
+npm run updateVersion
+```

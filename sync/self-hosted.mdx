@@ -1,0 +1,236 @@
+---
+title: "Self-hosted sync"
+description: "Set up Joplin sync with Nextcloud, Dropbox, OneDrive, WebDAV, or S3-compatible storage."
+keywords: ["nextcloud", "dropbox", "onedrive", "webdav", "s3", "self-hosted", "sync", "synchronisation"]
+---
+
+Joplin supports several sync targets beyond Joplin Cloud. Whether you want full self-hosted control, a third-party cloud storage service, or an S3-compatible object store, there is a provider for your needs.
+
+For an overview of all sync targets and how sync works, see the [Synchronisation overview](/sync/overview).
+
+<AccordionGroup>
+  <Accordion title="Nextcloud" id="nextcloud">
+    [Nextcloud](https://nextcloud.com/) is a self-hosted, open-source cloud platform. You own both the data on your device and the infrastructure used for synchronisation. Because it is open source, it cannot be shut down — it can run on a server for as long as you choose.
+
+    ### Desktop and mobile apps
+
+    <Steps>
+      <Step title="Select Nextcloud as the sync target">
+        Open the **Configuration** screen and select **Nextcloud** from the list of sync targets in the **Synchronisation** section.
+      </Step>
+      <Step title="Create a Joplin directory in Nextcloud">
+        Before entering the URL, create a folder named `Joplin` in your Nextcloud file storage. Joplin will use this directory exclusively.
+      </Step>
+      <Step title="Enter the WebDAV URL">
+        To find your WebDAV URL, click **Settings** in the bottom-left corner of the Nextcloud files view. The URL is typically one of:
+
+        ```
+        https://example.com/nextcloud/remote.php/webdav/Joplin
+        ```
+        ```
+        https://example.com/nextcloud/remote.php/dav/files/<nextcloud-username>/Joplin
+        ```
+      </Step>
+      <Step title="Enter your credentials">
+        Enter your Nextcloud **username** and **password**, then click **Apply**.
+      </Step>
+      <Step title="Synchronise">
+        Click **Synchronise** in the sidebar to begin.
+      </Step>
+    </Steps>
+
+    ### Terminal app
+
+    Run the following commands from within the terminal application:
+
+    ```bash
+    :config sync.5.path https://example.com/nextcloud/remote.php/webdav/Joplin
+    :config sync.5.username YOUR_USERNAME
+    :config sync.5.password YOUR_PASSWORD
+    :config sync.target 5
+    ```
+
+    ### After setup
+
+    Open the Nextcloud desktop client and **disable syncing for the Joplin data directory**. Synchronisation of that folder should be handled exclusively by Joplin to avoid conflicts.
+
+    <Note>
+      If sync does not work, check the logs in the app profile directory. Issues are most often caused by a misconfigured URL or incorrect password.
+    </Note>
+  </Accordion>
+
+  <Accordion title="Dropbox" id="dropbox">
+    When syncing with Dropbox, Joplin creates a sub-directory at `/Apps/Joplin` in your Dropbox account. Joplin reads and writes notes only within that directory and has no access to anything outside it.
+
+    ### Desktop and mobile apps
+
+    <Steps>
+      <Step title="Select Dropbox as the sync target">
+        Open the **Configuration** screen and select **Dropbox** from the list of sync targets. (Dropbox is selected by default.)
+      </Step>
+      <Step title="Start synchronisation">
+        Click **Synchronise** in the sidebar. Joplin will prompt you to authorise the application in your browser. Follow the on-screen instructions to grant access.
+      </Step>
+    </Steps>
+
+    ### Terminal app
+
+    Type `:sync` from within the terminal application. You will be asked to follow a link to authorise the application.
+  </Accordion>
+
+  <Accordion title="OneDrive" id="onedrive">
+    When syncing with OneDrive, Joplin creates a sub-directory at `/Apps/Joplin` in your OneDrive account. Joplin reads and writes notes only within that directory and has no access to anything outside it.
+
+    ### Desktop and mobile apps
+
+    <Steps>
+      <Step title="Select OneDrive as the sync target">
+        Open the **Configuration** screen and select **OneDrive** from the list of sync targets.
+      </Step>
+      <Step title="Start synchronisation">
+        Click **Synchronise** in the sidebar. Joplin will prompt you to sign in with your Microsoft account. Follow the on-screen instructions to authorise the application.
+      </Step>
+    </Steps>
+
+    <Note>
+      You do not need to register with OneDrive separately — signing in with your Microsoft credentials is sufficient.
+    </Note>
+
+    ### Terminal app
+
+    Type `:sync` from within the terminal application. You will be asked to follow a link to authorise the application using your Microsoft credentials.
+  </Accordion>
+
+  <Accordion title="WebDAV" id="webdav">
+    Joplin supports any WebDAV-compatible server. The setup is identical to Nextcloud, except that you select **WebDAV** as the sync target. In the terminal application, use sync target `6` instead of `5`.
+
+    ### Setup
+
+    Follow the same steps as [Nextcloud](#nextcloud), but select **WebDAV** as the sync target and enter the WebDAV URL for your specific server.
+
+    ### Compatible services
+
+    The following WebDAV services are known to work with Joplin:
+
+    - [Apache WebDAV Module](https://httpd.apache.org/docs/current/mod/mod_dav.html)
+    - [DriveHQ](https://www.drivehq.com)
+    - [Fastmail](https://www.fastmail.com/)
+    - [HiDrive](https://www.strato.fr/stockage-en-ligne/) from Strato
+    - [InfiniCLOUD](https://infini-cloud.net/)
+    - [Infomaniak kDrive](https://www.infomaniak.com/fr/ksuite/kdrive)
+    - [Mailbox.org WebDAV](https://kb.mailbox.org/en/private/drive/)
+    - [Nginx WebDAV Module](https://nginx.org/en/docs/http/ngx_http_dav_module.html)
+    - [Nextcloud](https://nextcloud.com/)
+    - [OwnCloud](https://owncloud.org/)
+    - [Seafile](https://www.seafile.com/)
+    - [Stack](https://www.transip.nl/stack/)
+    - [Synology WebDAV Server](https://www.synology.com/en-us/dsm/packages/WebDAVServer)
+    - [WebDAV Nav](https://www.schimera.com/products/webdav-nav-server/) — a macOS server
+    - [Zimbra](https://www.zimbra.com/)
+  </Accordion>
+
+  <Accordion title="S3-compatible storage" id="s3">
+    As of Joplin 2.x, Joplin supports S3 and S3-compatible object storage. Several configuration options are exposed to accommodate different providers.
+
+    ### Setup
+
+    In the **desktop or mobile application**, select **S3 (Beta)** as the sync target in the **Configuration** screen and fill in the following fields:
+
+    | Field | Description |
+    |---|---|
+    | **S3 Bucket** | The name of your bucket, e.g. `joplin-bucket` |
+    | **S3 URL** | Fully qualified endpoint URL. For AWS: `https://s3.<regionName>.amazonaws.com/` |
+    | **S3 Access Key** | Your programmatic access key ID |
+    | **S3 Secret Key** | Your programmatic secret key |
+    | **S3 Region** | Your bucket's region, e.g. `eu-west-1`. Leave blank if your provider does not require it. |
+    | **Force Path Style** | Enable this if your provider requires the older S3 path-style URLs. Try toggling it if the default does not work. |
+
+    ### Bucket configuration
+
+    When creating a new bucket for Joplin:
+
+    - Disable **Bucket Versioning**
+    - Enable **Block all public access**
+    - Enable **Default encryption** with `Amazon S3 key (SSE-S3)`
+
+    <Note>
+      Some providers do not expose all of these options. Attempt the sync and report back so the documentation can be updated for your provider.
+    </Note>
+
+    ### Bucket policy (AWS)
+
+    To add a bucket policy from the AWS S3 console, go to the **Permissions** tab. Temporarily disable **Block all public access** to edit the policy, then re-enable it after saving. A minimal policy for Joplin looks like:
+
+    ```json
+    {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "VisualEditor0",
+                "Effect": "Allow",
+                "Action": [
+                    "s3:ListBucket",
+                    "s3:GetBucketLocation",
+                    "s3:GetObject",
+                    "s3:DeleteObject",
+                    "s3:DeleteObjectVersion",
+                    "s3:PutObject"
+                ],
+                "Resource": [
+                    "arn:aws:s3:::joplin-bucket",
+                    "arn:aws:s3:::joplin-bucket/*"
+                ]
+            }
+        ]
+    }
+    ```
+
+    ### Provider-specific settings
+
+    All providers require a bucket name, Access Key, and Secret Key. Use the **Check config** button after entering your settings — a "success!" result means sync should work for your provider. If you do not see success, save the settings, restart the app, and attempt a sync to reveal more detailed error messages.
+
+    <Tabs>
+      <Tab title="AWS">
+        - **URL:** `https://s3.<region>.amazonaws.com/` (see the [full endpoint list](https://docs.aws.amazon.com/general/latest/gr/s3.html))
+        - **Region:** Required
+        - **Force Path Style:** Off
+      </Tab>
+      <Tab title="Backblaze B2">
+        - **URL:** `https://s3.<region>.backblazeb2.com` (use the endpoint URL provided by Backblaze)
+        - **Region:** Required — copy from the endpoint URL, e.g. `us-east-001`
+        - **Force Path Style:** Off
+      </Tab>
+      <Tab title="Cloudflare R2">
+        - **URL:** `https://<ACCOUNT_ID>.r2.cloudflarestorage.com` (visible in Cloudflare Dashboard under **API > Use R2 with APIs**)
+        - **Access Key / Secret Key:** Generate an API Token with **Object Read & Write** permissions under **Manage API tokens > Create Account API Token**
+        - **Region:** `auto`
+        - **Force Path Style:** Off
+      </Tab>
+      <Tab title="DigitalOcean Spaces">
+        - **URL:** `https://<region>.digitaloceanspaces.com`
+        - **Region:** Required, but has no effect on the actual region (defined in the URL). Suggest `us-east-1`.
+        - **Force Path Style:** Off
+      </Tab>
+      <Tab title="Linode Object Storage">
+        - **URL:** `https://<region>.linodeobjects.com` (provided by Linode, with the bucket name removed)
+        - **Region:** Any non-empty value
+        - **Force Path Style:** Off
+      </Tab>
+      <Tab title="Scaleway">
+        - **URL:** `https://s3.<region>.scw.cloud` (copy your bucket endpoint from the bucket settings tab, remove the bucket name)
+        - **Region:** Required, e.g. `fr-par`
+        - **Force Path Style:** Off
+      </Tab>
+      <Tab title="UpCloud">
+        - **URL:** `https://<account>.<region>.upcloudobjects.com`
+        - **Region:** Required
+        - **Force Path Style:** Off
+      </Tab>
+      <Tab title="Tebi">
+        - **URL:** `https://s3.tebi.io`
+        - **Region:** Required
+        - **Force Path Style:** Off
+      </Tab>
+    </Tabs>
+  </Accordion>
+</AccordionGroup>

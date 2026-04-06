@@ -1,0 +1,75 @@
+---
+title: "End-to-end encryption"
+description: "Protect your notes with end-to-end encryption so that only you can read them — not the sync provider, your ISP, or anyone else."
+keywords: ["encryption", "e2ee", "end-to-end encryption", "security", "master key", "privacy"]
+---
+
+Joplin supports end-to-end encryption (E2EE) on all applications — desktop, mobile, and terminal. With E2EE enabled, only the owner of the data can read it. This protects your notes against potential eavesdroppers including network providers, internet providers, and the developers of Joplin themselves.
+
+The system is designed to defeat surveillance and tampering because no third party can decipher data that is communicated or stored.
+
+<Note>
+  There is a small overhead to using E2EE since data must be continuously encrypted and decrypted. Consider whether you need it before enabling it.
+</Note>
+
+## How it works
+
+When E2EE is enabled, Joplin generates a **Master Key** — a cryptographic key secured by the password you choose. All your notes, notebooks, tags, and resources are encrypted using this key before they are sent to the sync target. The sync provider stores only the encrypted data and has no way to read the contents.
+
+The Master Key itself is stored encrypted on the sync target so it can be retrieved by your other devices. Each device must unlock the Master Key using your password before it can decrypt your notes.
+
+<Warning>
+  Your Master Key password cannot be recovered if lost. There is no reset mechanism. Store it securely.
+</Warning>
+
+## Enabling E2EE
+
+Because Joplin is decentralised, E2EE must be enabled on one device first. This creates the Master Key. All other devices then receive the Master Key during sync and prompt you for the password.
+
+It is recommended to start with the desktop or terminal application, since they run on more powerful hardware than mobile devices and can encrypt the initial dataset faster.
+
+<Steps>
+  <Step title="Enable encryption on your first device">
+    On your primary device (preferably desktop), open the **Configuration** screen and navigate to the **Encryption** section. Click **Enable encryption**.
+  </Step>
+  <Step title="Set your Master Key password">
+    Enter a strong password. This password encrypts your Master Key and will be required on every other device. **Do not forget it — it cannot be recovered.**
+  </Step>
+  <Step title="Synchronise to push encrypted data">
+    Wait for any in-progress sync to finish, then click **Synchronise**. All your notes will be re-sent to the sync target in encrypted form. If you have many notes and attachments, this may take a long time — let it run overnight if necessary. Do not cancel it.
+  </Step>
+  <Step title="Set up each additional device">
+    On the next device, click **Synchronise** and wait for the sync to complete. The device will receive the Master Key and prompt you for your password. Enter it to unlock the key. E2EE will then be automatically enabled on that device. Click **Synchronise** again and wait for it to complete.
+  </Step>
+  <Step title="Repeat for remaining devices">
+    Repeat the previous step for each device you use with Joplin.
+  </Step>
+</Steps>
+
+<Warning>
+  Do not manually enable encryption on multiple devices at the same time. Enable it on one device, wait for sync to complete, then let the other devices receive the Master Key via sync. Enabling E2EE independently on multiple devices will create multiple Master Keys, which Joplin supports but is almost certainly not what you want.
+</Warning>
+
+## After enabling E2EE
+
+Once all devices are in sync with E2EE enabled, encryption and decryption happen transparently in the background. You may occasionally see notes marked as encrypted, but they will be decrypted automatically. No manual action is needed during normal use.
+
+## Disabling E2EE
+
+To disable E2EE, follow the same procedure in reverse: disable encryption on each device one at a time and wait for synchronisation to complete before moving to the next device.
+
+<Steps>
+  <Step title="Disable on the first device">
+    Open the **Configuration** screen, go to the **Encryption** section, and click **Disable encryption**.
+  </Step>
+  <Step title="Synchronise">
+    Click **Synchronise** and wait for all data to be re-sent to the sync target unencrypted.
+  </Step>
+  <Step title="Repeat for each remaining device">
+    On each remaining device, sync first to receive the updated (unencrypted) data, then disable encryption in the Configuration screen.
+  </Step>
+</Steps>
+
+## Technical specification
+
+For a detailed technical description of the encryption method used, see the [Encryption specification](https://github.com/laurent22/joplin/blob/dev/readme/dev/spec/e2ee/index.md) in the Joplin repository. This is primarily useful for developers or for auditing the security implementation.

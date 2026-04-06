@@ -1,0 +1,99 @@
+---
+title: 'Authentication'
+description: 'How to authenticate with the Joplin Data API using tokens.'
+keywords: ['joplin', 'data api', 'authentication', 'token', 'web clipper', 'authorization']
+---
+
+The Data API is available when the Joplin clipper server is running. All requests must include an authentication token to prevent unauthorized access.
+
+## Find the API port
+
+The service normally runs on port **41184**. To find the port, open **Web Clipper Options** in the Joplin desktop application — if the service is running, the port will be displayed there.
+
+To find the port programmatically, scan the range `41184–41194` and call `GET /ping` on each:
+
+```javascript
+let port = null;
+for (let portToTest = 41184; portToTest <= 41194; portToTest++) {
+    const result = pingPort(portToTest); // Call GET /ping
+    if (result == 'JoplinClipperServer') {
+        port = portToTest; // Found the port
+        break;
+    }
+}
+```
+
+`GET /ping` returns `"JoplinClipperServer"` when the service is available.
+
+## Get your API token
+
+Open the **Web Clipper Options** screen in the Joplin desktop application. The API token is displayed there. Copy it and pass it as a `token` query parameter on every request.
+
+```bash
+curl http://localhost:41184/notes?token=ABCD123ABCD123ABCD123ABCD123ABCD123
+```
+
+<Note>
+  The token query parameter is required for every API call. The examples in the rest of this documentation omit it for brevity, but you must include it in practice.
+</Note>
+
+## Request a token programmatically
+
+If you need to obtain the token without user intervention (for example, when building an integration), you can request it through the authorization flow:
+
+<Steps>
+  <Step title="Request an auth token">
+    Call `POST /auth`. The server responds with a temporary `auth_token`:
+
+    ```bash
+    curl -X POST http://localhost:41184/auth
+    ```
+
+    Response:
+
+    ```json
+    { "auth_token": "AUTH_TOKEN" }
+    ```
+
+    This `auth_token` is not the same as your API token — it is only used to track the authorization request.
+  </Step>
+  <Step title="User accepts or rejects">
+    Joplin displays a prompt asking the user to **Accept** or **Reject** the access request from your application.
+  </Step>
+  <Step title="Poll for the result">
+    Call `GET /auth/check?auth_token=AUTH_TOKEN` at regular intervals until the user responds:
+
+    ```bash
+    curl http://localhost:41184/auth/check?auth_token=AUTH_TOKEN
+    ```
+
+    While waiting for the user:
+
+    ```json
+    { "status": "waiting" }
+    ```
+
+    Once the user accepts:
+
+    ```json
+    { "status": "accepted", "token": "API_TOKEN" }
+    ```
+
+    If the user rejects:
+
+    ```json
+    { "status": "rejected" }
+    ```
+  </Step>
+  <Step title="Use the API token">
+    Once accepted, use the returned `token` value as the `token` query parameter on all subsequent API requests.
+  </Step>
+</Steps>
+
+## Authorization errors
+
+If a request is made without a valid token, or with an expired or incorrect token, the API returns an HTTP status code `>= 400` with a JSON error body:
+
+```json
+{ "error": "description of error" }
+```

@@ -1,0 +1,153 @@
+---
+title: "Notebooks, subnotebooks, and tags"
+description: "Organise your notes into a hierarchy of notebooks and apply tags to cross-reference notes across different notebooks."
+---
+
+Joplin gives you two complementary ways to organise notes: **notebooks** (hierarchical containers) and **tags** (flat labels you can apply to any note regardless of which notebook it lives in).
+
+## Notebooks
+
+Notebooks are the primary way to group related notes. Every note belongs to exactly one notebook. You can create as many notebooks as you need, and nest them into a hierarchy using subnotebooks.
+
+### Creating a notebook
+
+<Tabs>
+  <Tab title="Desktop">
+    Click the **New notebook** button in the left sidebar (the folder icon with a `+`), or go to **File > New notebook**. Enter a name and press **Enter**.
+  </Tab>
+  <Tab title="Mobile">
+    Tap the hamburger menu to open the sidebar, then tap **New notebook** and enter a name.
+  </Tab>
+  <Tab title="Terminal">
+    In command-line mode, run:
+
+    ```bash
+    mknote "Notebook name"
+    ```
+  </Tab>
+</Tabs>
+
+### Subnotebooks
+
+Subnotebooks let you nest notebooks inside other notebooks, creating a tree structure. For example, you might have a top-level **Work** notebook containing subnotebooks for each project.
+
+<Tabs>
+  <Tab title="Desktop">
+    Drag and drop a notebook onto another notebook in the sidebar to make it a subnotebook. To move a subnotebook back to the root level, drag and drop it onto the **Notebooks** header at the top of the sidebar.
+  </Tab>
+  <Tab title="Mobile">
+    The mobile app displays the notebook tree and supports expanding and collapsing it, but does not currently support moving subnotebooks to different positions.
+  </Tab>
+  <Tab title="Terminal">
+    The terminal app displays the subnotebook tree but does not support collapsing, expanding, or reorganising it.
+  </Tab>
+</Tabs>
+
+<Note>
+Only the desktop app can be used to reorganise the notebook hierarchy.
+</Note>
+
+### Moving notes between notebooks
+
+<Tabs>
+  <Tab title="Desktop">
+    Drag and drop a note from the note list onto the target notebook in the sidebar. You can also right-click a note and select **Move to notebook**.
+  </Tab>
+  <Tab title="Mobile">
+    Open the note, tap the action menu (`︙`), and select **Move to notebook**.
+  </Tab>
+</Tabs>
+
+## Tags
+
+Tags are labels you attach to notes. Unlike notebooks, a single note can have multiple tags, and the same tag can appear across many notebooks. This makes tags useful for cross-cutting concerns — for example, tagging notes from multiple projects as `reference` or `to-review`.
+
+### Adding tags to a note
+
+<Tabs>
+  <Tab title="Desktop">
+    Open the note. At the bottom of the editor panel, click the tag field and type a tag name. Press **Enter** to add it. Create multiple tags by pressing **Enter** after each one.
+  </Tab>
+  <Tab title="Mobile">
+    Open the note, tap the action menu (`︙`), and select **Tags**. Type a tag name and save.
+  </Tab>
+</Tabs>
+
+### Browsing by tag
+
+In the desktop and mobile apps, tags appear in the left sidebar. Clicking a tag shows all notes that have that tag, regardless of which notebook they are in.
+
+### Searching by tag
+
+Use the `tag:` search filter to find notes by tag. See [Search](/apps/search) for full details.
+
+```
+tag:office
+tag:office tag:important
+tag:office -tag:spam
+any:1 tag:office tag:spam
+```
+
+## To-do notes
+
+Alongside regular notes, Joplin supports **to-do notes** — notes that can be marked as complete. They appear with a checkbox in the note list.
+
+### Creating a to-do
+
+<Tabs>
+  <Tab title="Desktop">
+    Click the **New to-do** button above the note list.
+  </Tab>
+  <Tab title="Mobile">
+    Open a notebook, tap the `+` button, and select **To-do**.
+  </Tab>
+</Tabs>
+
+### Converting between note and to-do
+
+<Tabs>
+  <Tab title="Desktop">
+    Right-click a note in the note list and select **Switch between note and to-do type**.
+  </Tab>
+  <Tab title="Mobile">
+    Open the note, tap the action menu (`︙`), and select **Convert to todo** or **Convert to note**.
+  </Tab>
+</Tabs>
+
+### Ordering to-dos
+
+By default, incomplete to-dos are shown at the top of the note list.
+
+<Tabs>
+  <Tab title="Desktop">
+    Open the **View** menu and uncheck **Completed to-dos on top** to change the ordering. Uncheck **Show completed to-dos** to hide completed to-dos entirely.
+  </Tab>
+  <Tab title="Mobile">
+    Open the note list, tap the **Filter** button, and uncheck **Completed to-dos on top** or **Show completed to-dos**.
+  </Tab>
+</Tabs>
+
+### Setting alarms on to-dos
+
+Joplin can show a notification when a to-do is due.
+
+<Tabs>
+  <Tab title="Desktop">
+    Open the to-do note and click the alarm button in the note toolbar. Enter a date and time, then click **OK**.
+  </Tab>
+  <Tab title="Mobile">
+    Open the to-do note, tap the action menu (`︙`), and select **Set alarm**.
+  </Tab>
+</Tabs>
+
+### Task lists inside notes
+
+You can also embed interactive checklists directly in the body of any note using Markdown task list syntax:
+
+```md
+- [ ] Buy milk
+- [x] Send email
+- [ ] Review PR
+```
+
+These checkboxes are interactive — you can tick them in both the desktop and mobile apps without switching to the raw editor. See [Markdown](/apps/markdown) for more on the syntax.

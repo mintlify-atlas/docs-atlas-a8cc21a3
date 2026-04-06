@@ -1,0 +1,124 @@
+---
+title: "Installation"
+description: "Download and install Joplin on your platform. Desktop, mobile, and terminal versions are available for Windows, macOS, Linux, Android, and iOS."
+---
+
+Joplin is available in three forms: a **desktop** app for Windows, macOS, and Linux; a **mobile** app for Android and iOS; and a **terminal** app for macOS, Linux, and Windows via WSL. All applications share a similar interface and can synchronise with each other.
+
+## Desktop app
+
+<Tabs>
+  <Tab title="Windows">
+    <Steps>
+      <Step title="Download the installer">
+        Download the Windows installer (32-bit and 64-bit): [Joplin-Setup-3.5.13.exe](https://objects.joplinusercontent.com/v3.5.13/Joplin-Setup-3.5.13.exe?source=JoplinWebsite&type=New)
+
+        A **portable version** is also available if you want to run Joplin from a USB key or without installing it system-wide: [JoplinPortable.exe](https://objects.joplinusercontent.com/v3.5.13/JoplinPortable.exe?source=JoplinWebsite&type=New). Copy the file to any directory — the app will create a `JoplinProfile` folder next to the executable.
+      </Step>
+      <Step title="Run the installer">
+        Double-click `Joplin-Setup-3.5.13.exe` and follow the on-screen instructions.
+      </Step>
+      <Step title="Launch Joplin">
+        Open Joplin from the Start menu or desktop shortcut.
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="macOS">
+    <Steps>
+      <Step title="Download the disk image">
+        - Apple Silicon (M1 and later): [Joplin-3.5.13-arm64.DMG](https://objects.joplinusercontent.com/v3.5.13/Joplin-3.5.13-arm64.DMG?source=JoplinWebsite&type=New)
+        - Intel: [Joplin-3.5.13.dmg](https://objects.joplinusercontent.com/v3.5.13/Joplin-3.5.13.dmg?source=JoplinWebsite&type=New)
+      </Step>
+      <Step title="Open the disk image">
+        Double-click the downloaded `.dmg` file to mount it.
+      </Step>
+      <Step title="Drag Joplin to Applications">
+        Drag the Joplin icon to your **Applications** folder.
+      </Step>
+      <Step title="Launch Joplin">
+        Open Joplin from your Applications folder or Spotlight.
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="Linux">
+    <Steps>
+      <Step title="Run the installation script">
+        The recommended method handles the AppImage download and desktop icon creation automatically:
+
+        ```bash
+        wget -O - https://raw.githubusercontent.com/laurent22/joplin/dev/Joplin_install_and_update.sh | bash
+        ```
+
+        <Tip>The install script supports additional flags. See [the script source](https://github.com/laurent22/joplin/blob/dev/Joplin_install_and_update.sh#L50) for the full list.</Tip>
+      </Step>
+      <Step title="Alternative: download the AppImage directly">
+        You can also download the AppImage manually: [Joplin-3.5.13.AppImage](https://objects.joplinusercontent.com/v3.5.13/Joplin-3.5.13.AppImage?source=JoplinWebsite&type=New)
+
+        Make it executable and run it:
+
+        ```bash
+        chmod +x Joplin-3.5.13.AppImage
+        ./Joplin-3.5.13.AppImage
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>
+
+## Mobile app
+
+<Tabs>
+  <Tab title="Android">
+    Install Joplin from the Google Play Store:
+
+    [Get it on Google Play](https://play.google.com/store/apps/details?id=net.cozic.joplin&utm_source=GitHub&utm_campaign=README&pcampaignid=MKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1)
+
+    Alternatively, download and install the APK directly: [joplin-v3.5.8.apk](https://objects.joplinusercontent.com/v3.5.8/joplin-v3.5.8.apk?source=JoplinWebsite&type=New)
+
+    <Note>To install the APK directly, you must enable **Install unknown apps** in your Android settings for the browser or file manager you use to open it.</Note>
+  </Tab>
+  <Tab title="iOS">
+    Install Joplin from the App Store:
+
+    [Get it on the App Store](https://itunes.apple.com/us/app/joplin/id1315599797)
+  </Tab>
+</Tabs>
+
+## Terminal app
+
+The terminal app runs on macOS, Linux, and Windows via [WSL](https://docs.microsoft.com/en-us/windows/wsl/faq).
+
+<Steps>
+  <Step title="Install Node.js 12 or later">
+    The terminal app requires Node.js 12+. Install it using your package manager or from [nodejs.org](https://nodejs.org/en/download/package-manager/).
+  </Step>
+  <Step title="Install the Joplin CLI">
+    ```bash
+    NPM_CONFIG_PREFIX=~/.joplin-bin npm install --loglevel=error -g joplin
+    sudo ln -s ~/.joplin-bin/bin/joplin /usr/local/bin/joplin
+    ```
+
+    By default, the binary is installed under `~/.joplin-bin`. You can change this directory if needed. If your npm permissions are configured globally (see [npm Option 2](https://docs.npmjs.com/getting-started/fixing-npm-permissions#option-2-change-npms-default-directory-to-another-directory)), you can instead run:
+
+    ```bash
+    npm -g install joplin
+    ```
+  </Step>
+  <Step title="Start Joplin">
+    ```bash
+    joplin
+    ```
+  </Step>
+</Steps>
+
+<Note>For full terminal app documentation including commands, shortcuts, and synchronisation, see the [Terminal app](/apps/terminal) page.</Note>
+
+## Web Clipper
+
+The Web Clipper is a browser extension that lets you save web pages and screenshots directly into Joplin. See the [Web Clipper](/apps/web-clipper) page for installation and usage instructions.
+
+## Unofficial distributions
+
+Community-maintained packages are available for distributions such as Arch Linux (via the AUR). These are not officially supported — report issues to the respective package maintainers, not the main Joplin project.
+
+A full list is maintained on the [Joplin Discourse forum](https://discourse.joplinapp.org/t/unofficial-alternative-joplin-distributions/23703).

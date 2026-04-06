@@ -1,0 +1,117 @@
+---
+title: "Custom CSS"
+description: "Customise how Joplin looks by adding your own CSS — style the note rendering area with userstyle.css or the entire application UI with userchrome.css."
+keywords: ["custom css", "userstyle", "userchrome", "themes", "appearance", "styling"]
+---
+
+Joplin supports two CSS files that you can edit to change its appearance. Both files live in your Joplin profile directory.
+
+<Note>
+  The profile directory path is shown at the top of the **General** page in the Configuration screen. On most systems it is `~/.config/joplin-desktop/`.
+</Note>
+
+<Warning>
+  `userstyle.css` and `userchrome.css` are advanced settings. Styles you write may break when Joplin updates, because the Joplin team cannot guarantee that the application's HTML structure will remain stable between versions. Using these files may require ongoing maintenance on your part.
+</Warning>
+
+## userstyle.css — note rendering
+
+`userstyle.css` controls how rendered Markdown is displayed in the note viewer. Place this file at:
+
+```text
+~/.config/joplin-desktop/userstyle.css
+```
+
+This file supports standard CSS syntax. It applies both when viewing notes and when printing or exporting to PDF.
+
+<Warning>
+  Be careful with styles that invert colours (for example, white text on a black background). These styles also apply when printing, which is usually not the desired result.
+</Warning>
+
+### Example: adjusting note typography
+
+```css
+/* Increase the base font size and line height for readability */
+body {
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+/* Style blockquotes */
+blockquote {
+  border-left: 4px solid #1372d2;
+  padding-left: 1em;
+  color: #555;
+}
+
+/* Style inline code */
+code {
+  background-color: #f4f4f4;
+  padding: 0.1em 0.4em;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+```
+
+### Example: customising headings
+
+```css
+h1, h2, h3 {
+  font-family: Georgia, serif;
+}
+
+h1 {
+  border-bottom: 2px solid #1372d2;
+  padding-bottom: 0.3em;
+}
+```
+
+## userchrome.css — application UI
+
+`userchrome.css` controls the entire Joplin desktop UI — the sidebar, toolbar, note list, and other interface elements. Place this file at:
+
+```text
+~/.config/joplin-desktop/userchrome.css
+```
+
+### Example: changing the sidebar background
+
+```css
+/* Change the notebook/sidebar background colour */
+.rli-sideBar {
+  background-color: #1e1e2e;
+  color: #cdd6f4;
+}
+```
+
+## Applying changes
+
+After editing either file, you must fully restart Joplin for the new CSS to take effect.
+
+<Note>
+  Make sure Joplin fully exits rather than minimising to the system tray or notification area. A minimised Joplin will not reload the CSS until it is actually closed and reopened.
+</Note>
+
+## Finding the right CSS selectors
+
+Joplin includes built-in developer tools you can use to inspect the HTML structure and experiment with styles before writing them to your CSS file.
+
+<Steps>
+  <Step title="Open the developer tools">
+    In the Joplin menu, go to **Help > Toggle development tools**.
+  </Step>
+  <Step title="Inspect an element">
+    In the **Elements** tab, select any element in the rendered note or UI. The panel shows the element's HTML and applied styles.
+  </Step>
+  <Step title="Test styles in real time">
+    Edit styles directly in the developer tools panel to preview changes instantly, then copy the working CSS into your `userstyle.css` or `userchrome.css` file.
+  </Step>
+</Steps>
+
+## Joplin Cloud publishing banner
+
+If you use Joplin Cloud Pro or Teams, you can customise the banner shown at the top of published notes — including the logo, title, and colour. To do this, open your Joplin Cloud profile page and go to the **Published note banner** section.
+
+## Plugin theming
+
+Plugins that add UI panels can also be styled with CSS. Joplin automatically provides CSS variables derived from the current theme, so plugins can adapt to light and dark themes. See [Plugin theming](/api/plugin-theming) for details.

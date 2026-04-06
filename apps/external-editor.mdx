@@ -1,0 +1,100 @@
+---
+title: "External editor"
+description: "Open and edit Joplin notes in any external text editor or Markdown editor, such as VS Code, Sublime Text, Vim, or Typora."
+keywords: ["external editor", "text editor", "VS Code", "Sublime Text", "Vim", "Typora", "edit note"]
+---
+
+Joplin notes can be opened and edited in any external text editor. This works with simple text editors like Notepad++ or Sublime Text, and also with dedicated Markdown editors like Typora, which can display images inline.
+
+## Opening a note in the external editor
+
+With a note selected, use either of these methods:
+
+- Click the external editor icon in the toolbar.
+- Press <kbd>Ctrl+E</kbd> (or <kbd>Cmd+E</kbd> on macOS).
+
+Joplin will open the note in your default text editor. Changes saved in the external editor are reflected in Joplin automatically.
+
+## Setting a specific editor
+
+If you want to use a specific editor rather than the system default, set the **Text editor command** option in the Configuration screen under **General Options**.
+
+The value should be the command used to launch your editor followed by any required flags. Common examples:
+
+<Tabs>
+  <Tab title="VS Code">
+    ```text
+    code -w
+    ```
+
+    The `-w` flag tells VS Code to wait — Joplin needs the process to stay open while you edit.
+  </Tab>
+  <Tab title="Sublime Text">
+    ```text
+    subl -w
+    ```
+
+    The `-w` flag waits for the file to be closed before returning control to Joplin.
+  </Tab>
+  <Tab title="Vim">
+    ```text
+    vim
+    ```
+
+    Run Vim in a terminal. If you prefer a specific terminal emulator:
+
+    ```text
+    xterm -e vim
+    ```
+  </Tab>
+  <Tab title="Neovim">
+    ```text
+    nvim
+    ```
+
+    Or in a terminal:
+
+    ```text
+    xterm -e nvim
+    ```
+  </Tab>
+  <Tab title="Typora">
+    Typora opens files in its own window and supports inline image rendering, making it a good choice for notes with attachments.
+
+    **macOS:**
+    ```text
+    /Applications/Typora.app/Contents/MacOS/Typora
+    ```
+
+    **Windows:**
+    ```text
+    C:\Program Files\Typora\Typora.exe
+    ```
+  </Tab>
+  <Tab title="Notepad++ (Windows)">
+    ```text
+    "C:\Program Files\Notepad++\notepad++.exe" -multiInst -nosession
+    ```
+
+    The `-multiInst` flag opens a new Notepad++ instance, and `-nosession` prevents it from restoring a previous session.
+  </Tab>
+  <Tab title="gedit (Linux)">
+    ```text
+    gedit --wait
+    ```
+
+    The `--wait` flag keeps the process open until you close the file.
+  </Tab>
+</Tabs>
+
+<Tip>
+  Editors that need a wait flag (like VS Code and Sublime Text) require it so that Joplin knows when you have finished editing. Without it, Joplin may not detect that the editor has closed.
+</Tip>
+
+## How it works
+
+When you open a note externally, Joplin writes the note content to a temporary Markdown file and passes its path to the editor command. When you save the file in the editor, Joplin reads the changes and updates the note. The temporary file is cleaned up when you close the external editor session.
+
+<Note>
+  Images and attachments in notes are stored in Joplin's resource folder. A Markdown editor that supports inline images (such as Typora) will display them correctly because the temporary file references the correct resource paths.
+</Note>

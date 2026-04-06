@@ -1,0 +1,88 @@
+---
+title: "Web Clipper"
+description: "Save web pages, articles, and screenshots directly to Joplin using the Web Clipper browser extension for Firefox and Chrome."
+keywords: ["web clipper", "browser extension", "clip page", "save webpage", "firefox", "chrome"]
+---
+
+The Web Clipper is a browser extension that lets you save web pages and screenshots from your browser directly into Joplin. It communicates with the Joplin desktop application via a local service that Joplin starts automatically.
+
+## Setup
+
+<Steps>
+  <Step title="Open the Web Clipper settings in Joplin">
+    Open the Joplin desktop application, go to the Configuration screen, and open the **Web Clipper** section. Follow the instructions shown there to enable the clipper service.
+  </Step>
+  <Step title="Install the browser extension">
+    Install the extension for your browser:
+
+    <Tabs>
+      <Tab title="Firefox">
+        Install the [Joplin Web Clipper extension](https://addons.mozilla.org/firefox/addon/joplin-web-clipper/) from the Firefox Add-ons site.
+      </Tab>
+      <Tab title="Chrome">
+        Install the [Joplin Web Clipper extension](https://chrome.google.com/webstore/detail/joplin-web-clipper/alofnhikmmkdbbbgpnglcpdollgjjfek) from the Chrome Web Store.
+      </Tab>
+    </Tabs>
+  </Step>
+  <Step title="Clip a page">
+    Navigate to any page you want to save, click the Joplin extension icon in your browser toolbar, choose your clipping options, and click **Clip**.
+  </Step>
+</Steps>
+
+## Troubleshooting the clipper service
+
+The Web Clipper extension and the Joplin desktop app communicate through a local service. If clipping fails or the extension cannot connect, work through these checks:
+
+<AccordionGroup>
+  <Accordion title="Verify the service is running">
+    Open the Web Clipper options in the Joplin desktop app and confirm that the service is shown as started.
+  </Accordion>
+  <Accordion title="Check for a firewall block">
+    Check that the port used by the service is not blocked by a firewall. The port number is shown in the Web Clipper options in the Joplin desktop app.
+  </Accordion>
+  <Accordion title="Check for a proxy conflict">
+    If a proxy is running on the machine, make sure requests from the Web Clipper service are not being blocked. The proxy may need to be configured to allow local traffic through.
+  </Accordion>
+</AccordionGroup>
+
+If none of the above resolves the issue, report it on the [Joplin forum](https://discourse.joplinapp.org/) or the [GitHub issue tracker](https://github.com/laurent22/joplin/issues).
+
+## Debugging the extension
+
+If you need to report a bug, include the browser console logs to help the Joplin team diagnose the problem.
+
+<Tabs>
+  <Tab title="Chrome">
+    First enable developer mode at `chrome://extensions/`, then:
+
+    - **Popup:** Right-click the Joplin extension icon and select **Inspect popup**.
+    - **Background script:** In `chrome://extensions/`, click **Inspect background script**.
+    - **Content script:** Press <kbd>Ctrl+Shift+I</kbd> to open the console of the current page.
+  </Tab>
+  <Tab title="Firefox">
+    <Steps>
+      <Step title="Open the add-on debugger">
+        Open `about:debugging` in Firefox and ensure **Enable add-on debugging** is checked.
+      </Step>
+      <Step title="Open the Joplin extension console">
+        Scroll down to the Joplin Web Clipper extension and click **Debugging** to open a dedicated console window.
+      </Step>
+      <Step title="Open the regular Firefox console">
+        Press <kbd>F12</kbd> to open the standard Firefox console. Some Joplin extension messages appear here too.
+      </Step>
+      <Step title="Reproduce and report">
+        Use the extension as normal to reproduce the bug, then copy and paste the content of both console windows and post it to the [Joplin forum](https://discourse.joplinapp.org/).
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>
+
+## Using the Web Clipper service API
+
+The Web Clipper service exposes a REST API that any application can use to create, modify, or delete notes, notebooks, and tags in Joplin. See the [REST API reference](/api/rest-api) for details on available endpoints and authentication.
+
+## Video tutorial
+
+Watch this short video to see how to install and use the Web Clipper:
+
+[![How to install and use the Joplin Web Clipper](https://img.youtube.com/vi/jeWTF2BILEI/hqdefault.jpg)](https://www.youtube.com/watch?v=jeWTF2BILEI)
